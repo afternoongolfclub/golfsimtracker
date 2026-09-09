@@ -319,6 +319,31 @@
     .hist .when { color: var(--muted); font-size: 0.78rem; white-space: nowrap; }
     .hist .note { color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .dice { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.5px; }
+
+    /* Camera + swing capture */
+    .cam-stage { position: relative; background: #000; border-radius: 12px; overflow: hidden; }
+    .cam-stage video { width: 100%; max-height: 50vh; display: block; object-fit: cover; background: #000; }
+    .cam-overlay {
+      position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 12px 10px;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.8)); font-size: 0.85rem;
+    }
+    .cam-flip {
+      position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.55);
+      color: #fff; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 999px;
+      padding: 6px 12px; font-size: 0.8rem;
+    }
+    .cam-guide {
+      position: absolute; inset: 12% 8%; border: 2px dashed rgba(255, 255, 255, 0.45);
+      border-radius: 10px; pointer-events: none;
+    }
+    .meter { height: 9px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; margin-top: 12px; }
+    .meter span { display: block; height: 100%; width: 0; background: var(--accent); }
+    .meter.hot span { background: var(--danger); }
+    .tempo-big { font-size: 2.3rem; font-weight: 800; line-height: 1.1; }
+    .tempo-parts { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 8px; }
+    .tempo-parts div { font-size: 0.85rem; color: var(--muted); }
+    .tempo-parts b { display: block; color: var(--text); font-size: 1.15rem; font-weight: 700; }
+    .swing-note { color: var(--muted); font-size: 0.78rem; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -347,13 +372,24 @@
 
         <!-- Scan from photo -->
         <div class="scan">
-          <h3>📷 Scan from photo</h3>
-          <div class="hint">Snap or upload your launch monitor screen — the numbers are read in
-            and filled below, and the photo is saved with the shot on your phone.</div>
+          <h3>📷 Scan the monitor screen</h3>
+          <div class="hint">Point the camera at your launch monitor — the numbers are read in
+            and filled below, and the picture is saved with the shot on your phone.</div>
           <input type="file" id="photoInput" accept="image/*" hidden />
-          <button type="button" class="scan-btn" id="scanBtn">Take / choose photo</button>
+          <div class="row2" style="gap:8px;">
+            <button type="button" class="scan-btn" id="camBtn">Live camera</button>
+            <button type="button" class="scan-btn" id="scanBtn">Photo library</button>
+          </div>
           <div class="scan-status" id="scanStatus"></div>
           <div class="scan-preview" id="scanPreview"><img id="scanImg" alt="Scanned photo" /></div>
+        </div>
+
+        <div class="scan">
+          <h3>🎥 Capture your swing</h3>
+          <div class="hint">Prop the phone up facing you and swing. The camera times your
+            backswing and downswing and listens for the strike, giving you your tempo ratio.</div>
+          <button type="button" class="scan-btn" id="swingBtn">Capture swing tempo</button>
+          <div class="scan-status" id="swingCardStatus"></div>
         </div>
 
         <form id="shotForm" autocomplete="off">
@@ -459,6 +495,21 @@
                   <input type="number" id="descentAngle" step="0.1" min="0" />
                 </div>
               </div>
+              <div class="hint-sm" style="margin:6px 0 8px;">Swing tempo — filled in for you by 🎥 Capture your swing.</div>
+              <div class="row2">
+                <div class="field">
+                  <label for="backswing">Backswing (s)</label>
+                  <input type="number" id="backswing" step="0.01" min="0" />
+                </div>
+                <div class="field">
+                  <label for="downswing">Downswing (s)</label>
+                  <input type="number" id="downswing" step="0.01" min="0" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="tempo">Tempo ratio (backswing ÷ downswing)</label>
+                <input type="number" id="tempo" step="0.1" min="0" />
+              </div>
             </div>
           </details>
 
@@ -497,13 +548,9 @@
                 <th>Spin</th>
                 <th>Carry</th>
                 <th>Total</th>
-                <th class="adv" hidden>AoA</th>
-                <th class="adv" hidden>Path</th>
-                <th class="adv" hidden>Face</th>
-                <th class="adv" hidden>Side</th>
-                <th class="adv" hidden>Peak</th>
-                <th class="adv" hidden>Descent</th>
-                <th>Photo</th>
+                <!-- the extra-metric columns are built from EXTRA_FIELDS so the
+                     header can't drift out of step with the rows -->
+                <th class="photo-th">Photo</th>
                 <th></th>
               </tr>
             </thead>
@@ -623,6 +670,58 @@
     </div>
   </div>
 
+  <!-- Live camera: scan the monitor screen -->
+  <div class="modal" id="camModal" hidden>
+    <div class="modal-inner">
+      <div class="iv-head">
+        <div>
+          <h2 style="margin:0;font-size:1.1rem;">📷 Scan the monitor screen</h2>
+          <div class="iv-scope">Fill the box with the numbers, then capture.</div>
+        </div>
+        <button type="button" class="btn-ghost" id="closeCamBtn">Close</button>
+      </div>
+      <div class="cam-stage">
+        <video id="camVideo" playsinline webkit-playsinline muted autoplay></video>
+        <div class="cam-guide"></div>
+        <button type="button" class="cam-flip" id="camFlipBtn">Flip</button>
+      </div>
+      <div class="scan-status" id="camStatus"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" id="camShotBtn">Capture</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Swing capture -->
+  <div class="modal" id="swingModal" hidden>
+    <div class="modal-inner wide">
+      <div class="iv-head">
+        <div>
+          <h2 style="margin:0;font-size:1.1rem;">🎥 Swing capture</h2>
+          <div class="iv-scope" id="swingScope">Tempo and timing — not ball speed.</div>
+        </div>
+        <button type="button" class="btn-ghost" id="closeSwingBtn">Close</button>
+      </div>
+      <div class="cam-stage">
+        <video id="swingVideo" playsinline webkit-playsinline muted autoplay></video>
+        <button type="button" class="cam-flip" id="swingFlipBtn">Flip</button>
+        <div class="cam-overlay" id="swingOverlay">Stand back so your whole swing is in frame.</div>
+      </div>
+      <div class="meter" id="swingMeter"><span id="motionBar"></span></div>
+      <div class="scan-status" id="swingStatus"></div>
+      <div id="swingResult"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" id="swingUseBtn" hidden>Use these numbers</button>
+        <button type="button" class="btn-ghost" id="swingRearmBtn" hidden>Capture another</button>
+      </div>
+      <div class="swing-note">
+        The camera times the swing and the microphone times the strike. A golf ball travels about
+        a metre between frames at 60 fps, so ball speed and club speed still have to come from
+        your launch monitor — this measures tempo, not distance.
+      </div>
+    </div>
+  </div>
+
   <!-- Matrix cell detail -->
   <div class="modal" id="cellModal" hidden>
     <div class="modal-inner">
@@ -670,6 +769,13 @@
       { key: "peakHeight", label: "Peak Height", short: "Peak", unit: "ft", dp: 0 },
       { key: "descentAngle", label: "Descent Angle", short: "Descent", unit: "°", dp: 1 },
     ];
+    // Swing timing, measured by the camera rather than read off a monitor.
+    const TEMPO_FIELDS = [
+      { key: "backswing", label: "Backswing", short: "Back", unit: "s", dp: 2 },
+      { key: "downswing", label: "Downswing", short: "Down", unit: "s", dp: 2 },
+      { key: "tempo", label: "Tempo", short: "Tempo", unit: ":1", dp: 1 },
+    ];
+    const EXTRA_FIELDS = ADV_FIELDS.concat(TEMPO_FIELDS);
 
     function load() {
       try {
@@ -766,7 +872,7 @@
         swing: currentSwing,
         hasPhoto: false,
       };
-      ADV_FIELDS.forEach((f) => { shot[f.key] = num($(f.key).value); });
+      EXTRA_FIELDS.forEach((f) => { shot[f.key] = num($(f.key).value); });
       if (pendingPhoto) {
         try {
           await putPhoto(id, pendingPhoto);
@@ -779,6 +885,7 @@
       save();
       e.target.reset();
       clearScan();
+      setStatus($("swingCardStatus"), "");
       primeShotNo();
       setSwing(currentSwing);   // keep the swing length for the next ball
       $("club").focus();
@@ -834,7 +941,7 @@
           <td>${s.spinRate == null ? "—" : Math.round(s.spinRate).toLocaleString()}</td>
           <td>${fmt(s.carry)}</td>
           <td>${fmt(s.total)}</td>
-          ${ADV_FIELDS.map((f) => `<td class="adv"${showAdv ? "" : " hidden"}>${fmt(s[f.key], f.dp)}</td>`).join("")}
+          ${EXTRA_FIELDS.map((f) => `<td class="adv"${showAdv ? "" : " hidden"}>${fmt(s[f.key], f.dp)}</td>`).join("")}
           <td class="photo-cell">${s.hasPhoto ? `<button class="thumb" data-photo="${s.id}" data-no="${s.shotNo == null ? "" : s.shotNo}" title="View / save photo">📷</button>` : "—"}</td>
           <td><button class="del" title="Delete" data-id="${s.id}">✕</button></td>
         </tr>`).join("");
@@ -879,13 +986,13 @@
     function exportCsv() {
       if (!shots.length) return;
       const header = ["Timestamp", "Shot #", "Club", "Swing", "Club Speed", "Ball Speed", "Smash Factor",
-        "Launch Angle", "Spin Rate", "Carry", "Total"].concat(ADV_FIELDS.map((f) => f.label));
+        "Launch Angle", "Spin Rate", "Carry", "Total"].concat(EXTRA_FIELDS.map((f) => f.label));
       const lines = [header.join(",")];
       currentFiltered().forEach((s) => {
         const sm = smash(s);
         const vals = [s.ts, s.shotNo, s.club, SWING_LABEL[swingOf(s)], s.clubSpeed, s.ballSpeed,
           sm == null ? "" : sm.toFixed(2),
-          s.launchAngle, s.spinRate, s.carry, s.total].concat(ADV_FIELDS.map((f) => s[f.key]));
+          s.launchAngle, s.spinRate, s.carry, s.total].concat(EXTRA_FIELDS.map((f) => s[f.key]));
         lines.push(vals.map((v) => (v == null ? "" : String(v))).join(","));
       });
       const blob = new Blob([lines.join("\n")], { type: "text/csv" });
@@ -947,6 +1054,9 @@
       offline: ["offline", "side", "sidedistance", "lateral", "carryoffline", "sidecarry"],
       peakHeight: ["peakheight", "peak", "apex", "height", "maxheight", "apexheight"],
       descentAngle: ["descentangle", "descent", "landingangle", "descentang", "angleofdescent"],
+      backswing: ["backswing", "backswingtime", "backtime"],
+      downswing: ["downswing", "downswingtime", "downtime"],
+      tempo: ["tempo", "temporatio", "swingtempo"],
     };
 
     // "3/4", "three quarter", "10:30", "half", "9 oclock" -> a swing key.
@@ -1008,9 +1118,9 @@
           swing: parseSwing(get(row, "swing")),
           hasPhoto: false,
         };
-        ADV_FIELDS.forEach((f) => { shot[f.key] = cleanNum(get(row, f.key)); });
+        EXTRA_FIELDS.forEach((f) => { shot[f.key] = cleanNum(get(row, f.key)); });
         const hasNum = ["clubSpeed", "ballSpeed", "launchAngle", "spinRate", "carry", "total"]
-          .concat(ADV_FIELDS.map((f) => f.key)).some((k) => shot[k] != null);
+          .concat(EXTRA_FIELDS.map((f) => f.key)).some((k) => shot[k] != null);
         if (club === "Unknown" && !hasNum) continue;   // skip blank/junk rows
         newShots.push(shot);
       }
@@ -1095,7 +1205,7 @@
           launch: stat(pick("launchAngle")),
           spin: stat(pick("spinRate")),
           smash: stat(g.map((s) => smash(s))),
-          adv: Object.fromEntries(ADV_FIELDS.map((f) => [f.key, stat(pick(f.key))])),
+          adv: Object.fromEntries(EXTRA_FIELDS.map((f) => [f.key, stat(pick(f.key))])),
         };
       });
       // distinct days
@@ -1227,8 +1337,8 @@
     }
 
     // Second table, only shown when there's delivery/flight data to show.
-    function ivAdvTable(clubs) {
-      const cols = ADV_FIELDS.filter((f) => clubs.some((c) => c.adv[f.key]));
+    function ivAdvTable(clubs, fields, heading, note) {
+      const cols = fields.filter((f) => clubs.some((c) => c.adv[f.key]));
       if (!cols.length) return "";
       const ordered = clubs.filter((c) => cols.some((f) => c.adv[f.key]))
         .sort((a, b) => ((b.carry ? b.carry.mean : -1) - (a.carry ? a.carry.mean : -1)));
@@ -1244,12 +1354,11 @@
             return `<td>${sign}${v}</td>`;
           }).join("")}
         </tr>`).join("");
-      return `<div class="iv-section"><h3>Delivery &amp; flight</h3>
+      return `<div class="iv-section"><h3>${heading}</h3>
         <div class="table-wrap"><table>
           <thead><tr><th>Club</th>${cols.map((f) => `<th>${f.short} (${f.unit})</th>`).join("")}</tr></thead>
           <tbody>${body}</tbody></table></div>
-        <div class="hint-sm" style="margin-top:8px;">Path and face: <b>+</b> is in-to-out / open.
-          Offline: <b>+</b> is right of target.</div></div>`;
+        <div class="hint-sm" style="margin-top:8px;">${note}</div></div>`;
     }
 
     function renderInsights() {
@@ -1272,7 +1381,10 @@
         `<div class="iv-section"><h3>Takeaways</h3>${takeaways}</div>` +
         chart +
         `<div class="iv-section"><h3>By club</h3>${ivTable(ins.clubs)}</div>` +
-        ivAdvTable(ins.clubs);
+        ivAdvTable(ins.clubs, ADV_FIELDS, "Delivery &amp; flight",
+          "Path and face: <b>+</b> is in-to-out / open. Offline: <b>+</b> is right of target.") +
+        ivAdvTable(ins.clubs, TEMPO_FIELDS, "Swing tempo",
+          "Captured by the camera. Tour tempo is about <b>3.0:1</b> — three parts back to one part down.");
       // chart tooltips
       $("ivBody").querySelectorAll(".barhit").forEach((el) => {
         const show = (ev) => {
@@ -1414,8 +1526,12 @@
 
     $("photoInput").addEventListener("change", async (e) => {
       const file = e.target.files && e.target.files[0];
-      if (!file) return;
+      if (file) await ingestPhoto(file);
+      e.target.value = "";
+    });
 
+    // Shared by the photo library and the live camera.
+    async function ingestPhoto(file) {
       // Preview
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       previewUrl = URL.createObjectURL(file);
@@ -1428,6 +1544,7 @@
 
       // OCR (photo is already queued to save even if this fails)
       $("scanBtn").disabled = true;
+      $("camBtn").disabled = true;
       try {
         setScanStatus("Loading OCR…");
         await ensureTesseract();
@@ -1448,9 +1565,437 @@
         setScanStatus((err.message || "Scan failed.") + " Enter numbers manually; the photo will still be saved.", "err");
       } finally {
         $("scanBtn").disabled = false;
+        $("camBtn").disabled = false;
+      }
+    }
+
+
+
+    /* ===================================================================
+       CAMERA
+       A phone camera samples 30-60 times a second. That times a swing well
+       (a backswing is ~750 ms) but says nothing useful about a ball leaving
+       the face at 150 mph, which clears a metre between frames. So: tempo
+       and timing here, speeds from the launch monitor.
+       =================================================================== */
+    let facing = "environment";
+    const cameraSupported = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+    function setStatus(el, msg, kind) {
+      if (!el) return;
+      el.textContent = msg || "";
+      el.className = "scan-status" + (kind ? " " + kind : "");
+    }
+    function camError(err) {
+      if (!cameraSupported()) {
+        return "This page can't reach a camera. On iPhone, open the app at its https:// web address in Safari — a file opened from disk isn't allowed one.";
+      }
+      const n = err && err.name;
+      if (n === "NotAllowedError" || n === "SecurityError") return "Camera access was refused. Allow it for this site in Settings → Safari, then try again.";
+      if (n === "NotFoundError" || n === "OverconstrainedError") return "No usable camera found on this device.";
+      if (n === "NotReadableError") return "The camera is busy in another app — close it and try again.";
+      return (err && err.message) || "Couldn't start the camera.";
+    }
+    async function getStream(withAudio) {
+      if (!cameraSupported()) throw new Error("no camera");
+      return navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 60 } },
+        audio: withAudio ? { echoCancellation: false, noiseSuppression: false, autoGainControl: false } : false,
+      });
+    }
+    const stopStream = (st) => { if (st) st.getTracks().forEach((t) => t.stop()); };
+
+    async function attach(video, stream) {
+      video.srcObject = stream;
+      try { await video.play(); } catch (e) {}
+      // Wait for real frames, otherwise the first captures are blank.
+      if (video.readyState < 2) {
+        await new Promise((res) => {
+          const done = () => { video.removeEventListener("loadeddata", done); res(); };
+          video.addEventListener("loadeddata", done);
+          setTimeout(done, 2500);
+        });
+      }
+    }
+
+    /* ----- Live camera: read the monitor screen ----- */
+    let camStream = null;
+    async function openCam() {
+      $("camModal").hidden = false;
+      setStatus($("camStatus"), "Starting camera…");
+      try {
+        camStream = await getStream(false);
+        await attach($("camVideo"), camStream);
+        setStatus($("camStatus"), "");
+      } catch (err) {
+        setStatus($("camStatus"), camError(err), "err");
+      }
+    }
+    function closeCam() {
+      stopStream(camStream); camStream = null;
+      $("camVideo").srcObject = null;
+      $("camModal").hidden = true;
+    }
+    function frameToBlob(video, quality = 0.9) {
+      return new Promise((resolve, reject) => {
+        const w = video.videoWidth, h = video.videoHeight;
+        if (!w || !h) return reject(new Error("The camera hasn't started yet — give it a second."));
+        const c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        c.getContext("2d").drawImage(video, 0, 0, w, h);
+        c.toBlob((b) => (b ? resolve(b) : reject(new Error("Couldn't read the frame."))), "image/jpeg", quality);
+      });
+    }
+    $("camBtn").addEventListener("click", openCam);
+    $("closeCamBtn").addEventListener("click", closeCam);
+    $("camModal").addEventListener("click", (e) => { if (e.target.id === "camModal") closeCam(); });
+    $("camFlipBtn").addEventListener("click", async () => {
+      facing = facing === "environment" ? "user" : "environment";
+      stopStream(camStream);
+      try { camStream = await getStream(false); await attach($("camVideo"), camStream); }
+      catch (err) { setStatus($("camStatus"), camError(err), "err"); }
+    });
+    $("camShotBtn").addEventListener("click", async () => {
+      try {
+        const blob = await frameToBlob($("camVideo"));
+        closeCam();
+        await ingestPhoto(new File([blob], "monitor.jpg", { type: "image/jpeg" }));
+      } catch (err) {
+        setStatus($("camStatus"), err.message, "err");
       }
     });
 
+    /* ===================================================================
+       SWING CAPTURE
+       Frame-to-frame pixel change gives the shape of the swing: a hump for
+       the backswing, a near-standstill at the top, then a much bigger spike
+       coming down. The microphone gives impact, and at 44.1 kHz it pins it
+       far more precisely than any video frame can.
+       =================================================================== */
+    const MW = 96, MH = 72;                 // motion is measured on a tiny copy of the frame
+    const mCanvas = document.createElement("canvas");
+    mCanvas.width = MW; mCanvas.height = MH;
+    const mCtx = mCanvas.getContext("2d", { willReadFrequently: true });
+
+    const cap = {
+      stream: null, raf: 0, raf2: 0, vfc: 0, useRaf: false,
+      ac: null, analyser: null, abuf: null, srate: 48000,
+      prev: null, samples: [], state: "idle", hot: 0,
+      baseM: 0.004, baseA: 0.02, calM: [], calA: [], tCal: 0,
+      tTrigger: 0, tImpact: 0, tQuiet: 0, tFirst: 0, frames: 0, last: null, hasAudio: false,
+    };
+
+    function swingOverlay(msg) { $("swingOverlay").textContent = msg; }
+
+    async function openSwing() {
+      $("swingModal").hidden = false;
+      $("swingResult").innerHTML = "";
+      $("swingUseBtn").hidden = true;
+      $("swingRearmBtn").hidden = true;
+      setStatus($("swingStatus"), "Starting camera…");
+      try {
+        cap.stream = await getStream(true);
+        cap.hasAudio = cap.stream.getAudioTracks().length > 0;
+        await attach($("swingVideo"), cap.stream);
+        if (cap.hasAudio) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          cap.ac = new AC();
+          if (cap.ac.state === "suspended") await cap.ac.resume().catch(() => {});
+          cap.srate = cap.ac.sampleRate;
+          cap.analyser = cap.ac.createAnalyser();
+          cap.analyser.fftSize = 2048;      // ~43 ms of audio, polled every frame, so no transient slips through
+          cap.ac.createMediaStreamSource(cap.stream).connect(cap.analyser);
+          cap.abuf = new Float32Array(cap.analyser.fftSize);
+        }
+        armSwing();
+        startLoops();
+        if (!cap.analyser) {
+          setStatus($("swingStatus"), "No microphone available — you'll get backswing time, but the tempo ratio needs the sound of the strike.");
+        }
+      } catch (err) {
+        setStatus($("swingStatus"), camError(err), "err");
+        swingOverlay("Camera unavailable.");
+      }
+    }
+
+    function armSwing() {
+      cap.state = "calibrating";
+      cap.prev = null; cap.samples = []; cap.hot = 0;
+      cap.calM = []; cap.calA = []; cap.tQuiet = 0; cap.tCal = performance.now();
+      setStatus($("swingStatus"), "");
+      swingOverlay("Hold still — reading the room…");
+    }
+
+    function closeSwing() {
+      cap.state = "idle";
+      stopLoops();
+      stopStream(cap.stream); cap.stream = null;
+      if (cap.ac) { cap.ac.close().catch(() => {}); cap.ac = null; }
+      cap.analyser = null; cap.state = "idle"; cap.prev = null;
+      $("swingVideo").srcObject = null;
+      $("swingModal").hidden = true;
+    }
+
+    // Motion is sampled once per frame the camera actually delivers. Polling on
+    // requestAnimationFrame instead would read the same frame twice whenever the
+    // camera runs slower than the display, and those duplicate frames look like
+    // a motionless club — which drags the detected top of the backswing early.
+    function sampleMotion() {
+      const v = $("swingVideo");
+      if (!(v.readyState >= 2 && v.videoWidth)) return;
+      const now = performance.now();
+      mCtx.drawImage(v, 0, 0, MW, MH);
+      const img = mCtx.getImageData(0, 0, MW, MH).data;
+      let m = 0, fresh = true;
+      if (cap.prev) {
+        let d = 0;
+        for (let i = 0; i < img.length; i += 4) {
+          d += Math.abs(img[i] - cap.prev[i]) + Math.abs(img[i + 1] - cap.prev[i + 1]);
+        }
+        m = d / ((img.length / 4) * 510);
+        fresh = d > 0;          // an identical frame is the camera repeating itself
+      }
+      cap.prev = new Uint8ClampedArray(img);
+      if (!fresh && cap.useRaf) return;
+      cap.frames++;
+
+      $("motionBar").style.width = Math.min(100, m * 900) + "%";
+      $("swingMeter").classList.toggle("hot", cap.state === "running");
+
+      if (cap.state === "calibrating") {
+        cap.calM.push(m);
+        if (now - cap.tCal > 700 && cap.calM.length > 8) {
+          cap.baseM = Math.max(0.004, Math.max(...cap.calM.slice(2)) * 1.6);
+          cap.baseA = Math.max(0.02, (cap.calA.length ? Math.max(...cap.calA) : 0) * 1.5);
+          cap.state = "armed";
+          swingOverlay("Ready — take your swing.");
+        }
+      } else if (cap.state === "armed") {
+        // Keep a rolling second of samples from before the takeaway — the exact
+        // moment the club started back is easier to find in hindsight.
+        cap.samples.push({ t: now, m });
+        if (cap.samples.length > 90) cap.samples.shift();
+        cap.hot = m > cap.baseM ? cap.hot + 1 : 0;
+        if (cap.hot >= 2) {
+          cap.tTrigger = cap.samples[Math.max(0, cap.samples.length - cap.hot)].t;
+          cap.state = "running";
+          swingOverlay("Swinging…");
+        }
+      } else if (cap.state === "running") {
+        cap.samples.push({ t: now, m });
+        // With no microphone there's no strike to hear, so wait for the swing to
+        // settle and take the fastest moment as impact. Waiting for the whole
+        // motion to finish avoids mistaking the pause at the top for the end.
+        if (!cap.analyser && now - cap.tTrigger > 400) {
+          if (m < cap.baseM) {
+            if (!cap.tQuiet) cap.tQuiet = now;
+            if (now - cap.tQuiet > 400) {
+              const after = cap.samples.filter((x) => x.t > cap.tTrigger + 150);
+              cap.tImpact = after.reduce((a, b) => (b.m > a.m ? b : a)).t;
+              return finishSwing(false, "there's no microphone, so impact couldn't be timed");
+            }
+          } else { cap.tQuiet = 0; }
+        }
+        if (now - cap.tTrigger > 3500) {
+          const after = cap.samples.filter((x) => x.t > cap.tTrigger + 200);
+          if (after.length) {
+            cap.tImpact = after.reduce((a, b) => (b.m > a.m ? b : a)).t;
+            finishSwing(false, "the strike was never heard — check the microphone isn't muted or covered");
+          } else { failSwing("Didn't see a swing. Make sure you're fully in frame."); }
+        }
+      }
+    }
+
+    // Audio runs on its own loop: the analyser holds ~43 ms of sound and we poll
+    // it every display frame, so the strike can't slip between reads. Its exact
+    // position inside the buffer times impact far more finely than any frame.
+    function audioTick() {
+      if (cap.state === "idle") return;
+      const now = performance.now();
+      if (cap.analyser) {
+        cap.analyser.getFloatTimeDomainData(cap.abuf);
+        let peak = 0, idx = 0;
+        for (let i = 0; i < cap.abuf.length; i++) {
+          const a = Math.abs(cap.abuf[i]);
+          if (a > peak) { peak = a; idx = i; }
+        }
+        if (cap.state === "calibrating") {
+          cap.calA.push(peak);
+        } else if (cap.state === "running" && peak > Math.max(cap.baseA * 4, 0.1)
+                   && now - cap.tTrigger > 200) {
+          cap.tImpact = now - ((cap.abuf.length - idx) / cap.srate) * 1000;
+          finishSwing(true, "the strike sound");
+        }
+      }
+      cap.raf = requestAnimationFrame(audioTick);
+    }
+
+    function startLoops() {
+      const v = $("swingVideo");
+      stopLoops();
+      cap.useRaf = typeof v.requestVideoFrameCallback !== "function";
+      if (cap.useRaf) {
+        const cb = () => { if (cap.state === "idle") return; sampleMotion(); cap.raf2 = requestAnimationFrame(cb); };
+        cap.raf2 = requestAnimationFrame(cb);
+      } else {
+        const cb = () => { if (cap.state === "idle") return; sampleMotion(); cap.vfc = v.requestVideoFrameCallback(cb); };
+        cap.vfc = v.requestVideoFrameCallback(cb);
+      }
+      cap.raf = requestAnimationFrame(audioTick);
+      cap.tFirst = performance.now();
+      cap.frames = 0;
+    }
+    function stopLoops() {
+      const v = $("swingVideo");
+      if (cap.raf) cancelAnimationFrame(cap.raf);
+      if (cap.raf2) cancelAnimationFrame(cap.raf2);
+      if (cap.vfc && v.cancelVideoFrameCallback) v.cancelVideoFrameCallback(cap.vfc);
+      cap.raf = cap.raf2 = cap.vfc = 0;
+    }
+
+    function failSwing(msg) {
+      cap.state = "done";
+      setStatus($("swingStatus"), msg, "err");
+      swingOverlay("Tap “Capture another” to try again.");
+      $("swingRearmBtn").hidden = false;
+    }
+
+    function finishSwing(heardImpact, impactSource) {
+      cap.state = "done";
+      const t1 = cap.tImpact;
+      const S = cap.samples.filter((x) => x.t <= t1);
+      if (S.length < 10) return failSwing("Not enough frames to read that swing — try more light, or move back a little.");
+
+      const sm = S.map((x, i) => ({
+        t: x.t,
+        m: (S[Math.max(0, i - 1)].m + x.m + S[Math.min(S.length - 1, i + 1)].m) / 3,
+      }));
+
+      // The club is near enough stationary for a moment either side of the top,
+      // so the quietest single frame there is arbitrary — and lands early,
+      // because the backswing decelerates over longer than the downswing takes
+      // to accelerate. Find the onsets instead: the downswing is the biggest
+      // motion in the swing, so walk back from its peak to where it began.
+      // That point is the top. Do the same from the backswing's own peak to
+      // find the takeaway.
+      const onsetBack = (fromIdx, floor) => {
+        const thr = Math.max(floor, sm[fromIdx].m * 0.15);
+        let i = fromIdx;
+        while (i > 0 && sm[i].m > thr) i--;
+        return i;
+      };
+      let pk = -1;
+      for (let i = 0; i < sm.length; i++) {
+        if (sm[i].t > cap.tTrigger && (pk < 0 || sm[i].m > sm[pk].m)) pk = i;
+      }
+      if (pk < 2) return failSwing("Couldn't find the downswing. Try again with your whole swing in frame.");
+      const ti = onsetBack(pk, cap.baseM * 0.8);
+
+      let bp = -1;
+      for (let i = 0; i < ti; i++) if (bp < 0 || sm[i].m > sm[bp].m) bp = i;
+      if (bp < 1 || ti < 2) return failSwing("Couldn't pick out the top of the backswing. Try again.");
+      const si = onsetBack(bp, cap.baseM * 0.6);
+
+      const top = sm[ti], t0 = sm[si].t;
+      if (top.t <= t0) return failSwing("Couldn't read that swing — try again.");
+
+      const back = (top.t - t0) / 1000, down = (t1 - top.t) / 1000;
+      if (back < 0.25 || back > 2.5) {
+        return failSwing("That didn't look like a full swing — the backswing came out outside anything plausible. Try again.");
+      }
+      const fps = cap.frames / Math.max(0.5, (performance.now() - cap.tFirst) / 1000);
+
+      // Without the strike sound there is no honest impact time. Pixel motion
+      // peaks somewhere in the middle of the downswing rather than at the ball,
+      // which would halve the downswing and double the ratio — so report the
+      // backswing, which needs no impact, and say why the rest is missing.
+      if (!heardImpact) {
+        cap.last = { backswing: r2(back) };
+        $("swingResult").innerHTML = `
+          <div class="dl-target" style="margin-top:12px;">
+            <div class="tempo-parts"><div>Backswing<b>${back.toFixed(2)} s</b></div></div>
+            <div class="hint-sm" style="margin:10px 0 0;">No tempo ratio for this one: ${impactSource}.
+              The downswing is only about a quarter of a second, so it needs the sound of the strike to
+              time — the video alone can't tell the ball being struck from the club still swinging.</div>
+          </div>`;
+        setStatus($("swingStatus"), "Backswing timed. Tempo needs the microphone.", "err");
+        swingOverlay("Capture another, or use the backswing time.");
+        $("swingUseBtn").hidden = false;
+        $("swingRearmBtn").hidden = false;
+        return;
+      }
+
+      if (down < 0.08 || down > 0.9) {
+        return failSwing("That didn't look like a full swing — the downswing came out outside anything plausible. Try again.");
+      }
+      const ratio = back / down;
+      cap.last = { backswing: r2(back), downswing: r2(down), tempo: Math.round(ratio * 10) / 10 };
+
+      const verdict = Math.abs(ratio - 3) <= 0.3 ? "right on tour tempo"
+        : ratio > 3.3 ? "slower coming down than going back — a touch quick in the backswing, or lazy in transition"
+        : "quick in transition — the downswing is rushing the backswing";
+      $("swingResult").innerHTML = `
+        <div class="dl-target" style="margin-top:12px;">
+          <div class="tempo-big">${ratio.toFixed(1)} : 1</div>
+          <div style="color:var(--muted);font-size:0.85rem;">Tempo ratio — ${verdict}. Tour average is about 3.0:1.</div>
+          <div class="tempo-parts">
+            <div>Backswing<b>${back.toFixed(2)} s</b></div>
+            <div>Downswing<b>${down.toFixed(2)} s</b></div>
+            <div>Total<b>${(back + down).toFixed(2)} s</b></div>
+          </div>
+          <div class="hint-sm" style="margin:10px 0 0;">Impact found from ${impactSource}; camera ran at
+            ${Math.round(fps)} fps, so each timing is good to about ±${Math.round(1000 / Math.max(1, fps))} ms.</div>
+        </div>`;
+      setStatus($("swingStatus"), "Got it.", "ok");
+      swingOverlay("Nice. Capture another, or use the numbers.");
+      $("swingUseBtn").hidden = false;
+      $("swingRearmBtn").hidden = false;
+    }
+    const r2 = (x) => Math.round(x * 100) / 100;
+
+    $("swingBtn").addEventListener("click", openSwing);
+    $("closeSwingBtn").addEventListener("click", closeSwing);
+    $("swingRearmBtn").addEventListener("click", () => {
+      $("swingResult").innerHTML = "";
+      $("swingUseBtn").hidden = true;
+      $("swingRearmBtn").hidden = true;
+      armSwing();
+    });
+    $("swingFlipBtn").addEventListener("click", async () => {
+      facing = facing === "environment" ? "user" : "environment";
+      cap.state = "idle";
+      stopLoops();
+      stopStream(cap.stream);
+      if (cap.ac) { cap.ac.close().catch(() => {}); cap.ac = null; cap.analyser = null; }
+      try {
+        cap.stream = await getStream(true);
+        cap.hasAudio = cap.stream.getAudioTracks().length > 0;
+        await attach($("swingVideo"), cap.stream);
+        if (cap.hasAudio) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          cap.ac = new AC();
+          cap.srate = cap.ac.sampleRate;
+          cap.analyser = cap.ac.createAnalyser();
+          cap.analyser.fftSize = 2048;
+          cap.ac.createMediaStreamSource(cap.stream).connect(cap.analyser);
+          cap.abuf = new Float32Array(cap.analyser.fftSize);
+        }
+        armSwing();
+        startLoops();
+      } catch (err) { setStatus($("swingStatus"), camError(err), "err"); }
+    });
+    $("swingUseBtn").addEventListener("click", () => {
+      if (!cap.last) return;
+      $("backswing").value = cap.last.backswing;
+      $("downswing").value = cap.last.downswing == null ? "" : cap.last.downswing;
+      $("tempo").value = cap.last.tempo == null ? "" : cap.last.tempo;
+      document.querySelector("details.more").open = true;
+      closeSwing();
+      setStatus($("swingCardStatus"), cap.last.tempo == null
+        ? `Backswing ${cap.last.backswing}s — saved with your next shot.`
+        : `Tempo ${cap.last.tempo}:1 (${cap.last.backswing}s back, ${cap.last.downswing}s down) — saved with your next shot.`,
+        "ok");
+    });
 
     /* ---------- View tabs ---------- */
     const VIEWS = ["log", "wedge", "drills"];
@@ -1481,6 +2026,19 @@
     });
 
     /* ---------- Extra metric columns ---------- */
+    (function buildExtraHeaders() {
+      const row = document.querySelector("#view-log thead tr");
+      const photoTh = row.querySelector("th.photo-th");
+      EXTRA_FIELDS.forEach((f) => {
+        const th = document.createElement("th");
+        th.className = "adv";
+        th.hidden = true;
+        th.textContent = f.short;
+        th.title = f.label + " (" + f.unit + ")";
+        row.insertBefore(th, photoTh);
+      });
+    })();
+
     let showAdv = false;
     $("colsBtn").addEventListener("click", () => {
       showAdv = !showAdv;
@@ -1885,16 +2443,38 @@
       },
       {
         id: "tempo", icon: "🎵", name: "3:1 Tempo Count", cat: "Tempo",
-        why: "Good players take about three times as long going back as they do coming down. Tempo steadies strike and distance at the same time.",
-        setup: ["Any club. Count out loud or use a metronome at 76 bpm."],
-        steps: [
-          "Count 'one-two-three' on the way back, 'one' from the top to impact.",
-          "Hit 10 balls staying with the count, whatever happens to the shot.",
-          "Score a point for each ball where you kept the count all the way through.",
-          "Finish with three balls at a deliberately slower count — that's your on-course tempo under pressure.",
+        why: "Good players take about three times as long going back as they do coming down. Tempo steadies strike and distance at the same time — and the camera can measure it, so you don't have to guess.",
+        setup: [
+          "Prop your phone up so your whole swing is in frame, and tap 🎥 Capture your swing on the Log tab.",
+          "Or count it yourself: 'one-two-three' back, 'one' down. A metronome at 76 bpm works too.",
         ],
-        target: "8 of 10 with the count intact. Carry distance usually tightens up on its own.",
-        scoring: { mode: "manual", max: 10, unit: "of 10" },
+        steps: [
+          "Capture a swing, tap Use these numbers, then save the shot — the tempo is stored with it.",
+          "Do that for 10 balls. Don't chase the number mid-swing; swing, then look.",
+          "A point for each swing inside 0.3 of a 3.0:1 ratio.",
+          "Finish with three deliberately slower ones — that's the tempo that holds up under pressure.",
+        ],
+        target: "8 of 10 inside the window, and the spread between swings shrinking over time.",
+        scoring: { mode: "auto", unit: "swings" },
+        auto() {
+          const pool = shots.filter((s) => s.tempo != null).slice(0, 10);
+          if (pool.length < 3) {
+            return { need: "Capture at least 3 swings with 🎥 Capture your swing on the Log tab, and save them with a shot." };
+          }
+          const inside = pool.filter((s) => Math.abs(s.tempo - 3) <= 0.3).length;
+          const st = stat(pool.map((s) => s.tempo));
+          const drift = st.mean > 3.3 ? "You're hanging at the top — the downswing is slow relative to the backswing."
+            : st.mean < 2.7 ? "You're rushing the transition — the downswing is quick for the backswing you're making."
+            : "Your average sits right on tour tempo.";
+          return {
+            score: inside, max: pool.length,
+            text: `${inside} of your last ${pool.length} captured swings came in at 3.0:1 ±0.3.`,
+            detail: [
+              `Average ${st.mean.toFixed(1)}:1${st.sd != null ? `, varying by ±${st.sd.toFixed(1)}` : ""}`,
+              drift,
+            ],
+          };
+        },
       },
       {
         id: "lowpoint", icon: "🪄", name: "Towel Low-Point", cat: "Strike",

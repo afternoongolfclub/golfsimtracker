@@ -19,10 +19,14 @@ your partial-wedge distance chart, and **Drills** for scored practice.
 - **Swing length** — Full, 3/4 (10:30), 1/2 (9:00) or 1/4 (7:30) — is tagged on
   every shot and feeds the wedge matrix. It stays selected between shots, so you
   can hit five in a row at the same swing without touching it.
-- **Scan from a photo** — take or upload a picture of your launch monitor screen
-  and on-device OCR reads the numbers straight into the form for you to confirm
-  before saving. (Needs internet the first time you scan, to load the OCR
-  engine; after that the numbers still get filled locally.)
+- **Scan the monitor screen** — point the live camera at your launch monitor (or
+  pick a picture from the library) and on-device OCR reads the numbers straight
+  into the form for you to confirm before saving. (Needs internet the first time
+  you scan, to load the OCR engine; after that the numbers still get filled
+  locally.)
+- **Capture your swing** — prop the phone up facing you and swing. The camera
+  times your backswing and downswing and the microphone hears the strike, giving
+  you a tempo ratio. See *What the camera can and can't measure* below.
 - **Keeps the photo** with each shot, stored on your device (in the browser's
   IndexedDB, downscaled to save space). Tap the 📷 in the shots table to view
   it, and **Save to phone** to drop it into your Photos/Files.
@@ -38,13 +42,40 @@ your partial-wedge distance chart, and **Drills** for scored practice.
 - **Filter** the shot table by club.
 - **Import from CSV or Excel** — load an existing spreadsheet of shots. Columns
   are matched by header name (e.g. `Club`, `Swing`, `Ball Speed`, `Spin Rate`,
-  `Carry`, `Total`, `Attack Angle`, `Club Path`, `Offline`), so it works with the
+  `Carry`, `Total`, `Attack Angle`, `Club Path`, `Offline`, `Tempo`), so it works with the
   app's own exports and with files from
   most sim/launch-monitor software. `.csv` is read directly; `.xlsx` loads a
   reader on first use (needs internet once — otherwise Save As CSV in Excel).
 - **Export to CSV** for analysis in a spreadsheet.
 - **Persistent** — everything is saved to your browser's local storage, so your
   data is still there when you come back.
+
+## What the camera can and can't measure
+
+**It can time your swing.** A backswing takes around three quarters of a second,
+so at 30–60 frames a second there are plenty of frames to work with. The app
+watches how much the picture changes between frames: a hump as you take it back,
+a near-standstill at the top, then a much bigger spike coming down. Impact comes
+from the microphone — audio is sampled about 44,000 times a second, so the strike
+is pinned far more precisely than any video frame could manage.
+
+That gives you **backswing time, downswing time and your tempo ratio**. Tour
+tempo is about 3.0:1 — three parts back to one part down.
+
+**It can't measure ball speed or club speed.** A ball leaving the face at 150 mph
+covers about a metre between frames at 60 fps, which is the most a browser gets
+from an iPhone camera. It is gone in a single frame. Those numbers still come
+from your launch monitor — scan them in or type them.
+
+**Without a microphone you get the backswing only.** Pixel motion peaks somewhere
+in the middle of the downswing rather than at the ball, so using it as impact
+would halve the downswing and double the ratio. The app says so rather than
+showing you a number it can't stand behind.
+
+A few practical notes: the camera needs the app opened over **https://** (the
+GitHub Pages address) — Safari won't give a camera to a page opened from a file.
+Stand back far enough that the whole swing is in frame, keep the phone still, and
+give it good light — the darker it is, the noisier the motion signal.
 
 Partial swings count as their own shot in the stats: a half PW is a different
 club from a full PW, so it gets its own line in Insights rather than being
@@ -83,8 +114,11 @@ how to run it, and a target to beat.
   against a smash-factor target for the club in hand, *Carry Window* measures
   how many of your last ten carries land inside a 10-yard window, and *Start
   Line Gate* uses your offline numbers.
-- **Hand-scored drills** — Ladder, Random Number Game, Two-Club Gap Test, 3:1
-  Tempo, Towel Low-Point, Up & Down 9 — take a score out of 9 or 10 plus a note.
+- ***3:1 Tempo Count*** scores itself from swings you capture with the camera —
+  how many of the last ten landed inside 3.0:1 ±0.3, and whether you're rushing
+  the transition or hanging at the top.
+- **Hand-scored drills** — Ladder, Random Number Game, Two-Club Gap Test, Towel
+  Low-Point, Up & Down 9 — take a score out of 9 or 10 plus a note.
 - **Every session is saved**, so each drill shows your last score, your best, and
   how many times you've played it.
 - The Random Number Game throws you a yardage from inside your own matrix range,
