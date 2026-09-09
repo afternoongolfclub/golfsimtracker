@@ -59,7 +59,8 @@
     header p { margin: 2px 0 0; color: var(--muted); font-size: 0.9rem; }
     main { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
     .grid { display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: start; }
-    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+    .grid.two { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 860px) { .grid, .grid.two { grid-template-columns: 1fr; } }
     .panel {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -183,6 +184,141 @@
     .chart .barhit { fill: transparent; cursor: default; }
     .iv-tip { position: fixed; z-index: 60; pointer-events: none; background: #0b1219; border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; font-size: 0.78rem; line-height: 1.35; color: var(--text); box-shadow: var(--shadow); opacity: 0; transition: opacity 0.1s; max-width: 240px; }
     .iv-tip b { color: var(--accent); }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 8px; margin: 0 auto 20px; flex-wrap: wrap; }
+    .tab {
+      background: var(--panel); color: var(--muted); border: 1px solid var(--border);
+      border-radius: 999px; padding: 8px 16px; font-size: 0.88rem; font-weight: 600;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { background: var(--accent); color: #06210f; border-color: var(--accent); }
+    [hidden] { display: none !important; }
+
+    /* Collapsible "more metrics" */
+    details.more { margin-bottom: 13px; border: 1px solid var(--border); border-radius: 11px; background: var(--panel-2); }
+    details.more > summary {
+      cursor: pointer; list-style: none; padding: 10px 12px; font-size: 0.85rem;
+      color: var(--muted); font-weight: 600; border-radius: 11px;
+    }
+    details.more > summary::-webkit-details-marker { display: none; }
+    details.more > summary::after { content: " ▾"; }
+    details.more[open] > summary::after { content: " ▴"; }
+    details.more > summary:hover { color: var(--text); }
+    .more-body { padding: 0 12px 6px; }
+    .hint-sm { color: var(--muted); font-size: 0.75rem; margin: -4px 0 10px; }
+
+    /* Segmented control (swing length) */
+    .seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .seg button {
+      background: var(--panel-2); color: var(--muted); border: 1px solid var(--border);
+      padding: 8px 4px; font-size: 0.8rem; border-radius: 9px; font-weight: 600;
+    }
+    .seg button.on { background: var(--accent); color: #06210f; border-color: var(--accent); }
+    .seg button small { display: block; font-weight: 500; font-size: 0.66rem; opacity: 0.75; }
+
+    /* Section headers used by the wedge + drills views */
+    .view-head { margin-bottom: 18px; }
+    .view-head h2 { margin: 0 0 4px; font-size: 1.25rem; }
+    .view-head p { margin: 0; color: var(--muted); font-size: 0.88rem; max-width: 70ch; }
+
+    /* Wedge matrix */
+    .matrix-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+    table.matrix { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    table.matrix th, table.matrix td { padding: 0; border-bottom: 1px solid var(--border); text-align: center; }
+    table.matrix thead th {
+      background: var(--panel-2); color: var(--muted); font-weight: 600;
+      padding: 10px 8px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    table.matrix thead th small { display: block; text-transform: none; letter-spacing: 0; opacity: 0.7; font-weight: 500; }
+    table.matrix tbody th {
+      background: var(--panel-2); text-align: left; padding: 10px 12px; font-weight: 600;
+      white-space: nowrap; position: sticky; left: 0; z-index: 1;
+    }
+    .cell {
+      width: 100%; background: transparent; border: none; color: var(--text);
+      padding: 12px 8px; font-size: 1.05rem; font-weight: 700; text-align: center;
+      display: block; border-radius: 0;
+    }
+    .cell:hover { background: rgba(67, 196, 99, 0.10); }
+    .cell .sub { display: block; font-size: 0.68rem; font-weight: 500; color: var(--muted); margin-top: 2px; }
+    .cell.empty-cell { color: var(--muted); font-weight: 500; font-size: 0.95rem; }
+    .cell .sub::before { content: "● "; }
+    .cell.solid .sub::before { color: var(--accent); }
+    .cell.thin .sub::before { color: var(--danger); }
+    .cell.manual .sub { color: #d8b25a; }
+    .cell.empty-cell .sub::before { content: ""; }
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 0.76rem; margin-top: 10px; }
+    .legend span::before { content: "■ "; }
+    .legend .g::before { color: var(--accent); }
+    .legend .r::before { color: var(--danger); }
+    .legend .y::before { color: #d8b25a; }
+
+    /* Yardage lookup */
+    .lookup { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+    .lookup .field { margin: 0; min-width: 150px; }
+    .lookup .btn-primary { width: auto; margin: 0; }
+    .lookup-out { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .rec {
+      background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 11px 13px; display: flex; align-items: center; gap: 12px; font-size: 0.9rem;
+    }
+    .rec.best { border-color: var(--accent); }
+    .rec .badge {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 999px;
+      padding: 3px 10px; font-size: 0.78rem; font-weight: 600; white-space: nowrap;
+    }
+    .rec.best .badge { background: var(--accent); color: #06210f; border-color: var(--accent); }
+    .rec .grow { flex: 1; }
+    .rec .delta { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+
+    /* Gap ladder */
+    .gaps { display: flex; flex-direction: column; gap: 6px; }
+    .gap-row { display: flex; align-items: center; gap: 10px; font-size: 0.87rem; }
+    .gap-row .yds { width: 62px; text-align: right; font-weight: 700; }
+    .gap-row .who { color: var(--muted); flex: 1; }
+    .gap-row .flag { font-size: 0.76rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+    .gap-row .flag.hole { color: var(--danger); border-color: rgba(229,83,75,0.5); }
+    .gap-row .flag.dupe { color: #d8b25a; border-color: rgba(216,178,90,0.5); }
+
+    /* Drills */
+    .drill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .drill {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+      padding: 16px 18px; display: flex; flex-direction: column; gap: 9px; box-shadow: var(--shadow);
+    }
+    .drill h3 { margin: 0; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+    .drill .cat {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted);
+      border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; font-weight: 600;
+    }
+    .drill .why { color: var(--muted); font-size: 0.85rem; margin: 0; }
+    .drill .meta { display: flex; gap: 14px; font-size: 0.76rem; color: var(--muted); flex-wrap: wrap; }
+    .drill .meta b { color: var(--text); font-weight: 600; }
+    .drill .actions { display: flex; gap: 8px; margin-top: auto; padding-top: 4px; }
+    .drill .actions button { flex: 1; padding: 8px 10px; font-size: 0.85rem; }
+    .score-pill {
+      display: inline-block; background: var(--panel-2); border: 1px solid var(--border);
+      border-radius: 999px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600;
+    }
+    .score-pill.pass { background: rgba(67,196,99,0.14); border-color: var(--accent); color: var(--accent); }
+    .score-pill.near { background: rgba(216,178,90,0.14); border-color: rgba(216,178,90,0.6); color: #d8b25a; }
+
+    /* Drill detail modal */
+    .dl-body h4 { margin: 18px 0 6px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+    .dl-body ol, .dl-body ul { margin: 0; padding-left: 20px; font-size: 0.9rem; }
+    .dl-body li { margin-bottom: 5px; }
+    .dl-body p { font-size: 0.9rem; margin: 0; }
+    .dl-target { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; font-size: 0.9rem; }
+    .dl-log { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-top: 8px; }
+    .dl-log .field { margin: 0; }
+    .dl-log .field.grow { flex: 1; min-width: 160px; }
+    .dl-log .btn-primary { width: auto; margin: 0; }
+    .hist { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
+    .hist li { display: flex; gap: 10px; align-items: center; font-size: 0.85rem; background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px; padding: 7px 11px; }
+    .hist .when { color: var(--muted); font-size: 0.78rem; white-space: nowrap; }
+    .hist .note { color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dice { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.5px; }
   </style>
 </head>
 <body>
@@ -197,6 +333,13 @@
   </header>
 
   <main>
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-view="log">🏌️ Log</button>
+      <button class="tab" data-view="wedge">📐 Wedge Matrix</button>
+      <button class="tab" data-view="drills">🎯 Drills</button>
+    </nav>
+
+    <section id="view-log">
     <div class="grid">
       <!-- Entry form -->
       <section class="panel" aria-label="Log a shot">
@@ -242,6 +385,15 @@
               <input type="number" id="shotNo" step="1" min="1" />
             </div>
           </div>
+          <div class="field">
+            <label>Swing length <span id="swingHint" style="text-transform:none;"></span></label>
+            <div class="seg" id="swingSeg">
+              <button type="button" data-swing="full" class="on">Full<small>&nbsp;</small></button>
+              <button type="button" data-swing="three4">3/4<small>10:30</small></button>
+              <button type="button" data-swing="half">1/2<small>9:00</small></button>
+              <button type="button" data-swing="quarter">1/4<small>7:30</small></button>
+            </div>
+          </div>
           <div class="row2">
             <div class="field">
               <label for="clubSpeed">Club Speed (mph)</label>
@@ -272,6 +424,44 @@
               <input type="number" id="total" step="0.1" min="0" />
             </div>
           </div>
+
+          <details class="more">
+            <summary>More metrics — delivery &amp; flight</summary>
+            <div class="more-body">
+              <div class="hint-sm">Optional. Fill in whatever your monitor gives you; blanks are ignored.</div>
+              <div class="row2">
+                <div class="field">
+                  <label for="attackAngle">Attack Angle (°)</label>
+                  <input type="number" id="attackAngle" step="0.1" placeholder="+ up / − down" />
+                </div>
+                <div class="field">
+                  <label for="clubPath">Club Path (°)</label>
+                  <input type="number" id="clubPath" step="0.1" placeholder="+ in-out" />
+                </div>
+              </div>
+              <div class="row2">
+                <div class="field">
+                  <label for="faceAngle">Face Angle (°)</label>
+                  <input type="number" id="faceAngle" step="0.1" placeholder="+ open" />
+                </div>
+                <div class="field">
+                  <label for="offline">Offline (yds)</label>
+                  <input type="number" id="offline" step="0.1" placeholder="+ right" />
+                </div>
+              </div>
+              <div class="row2">
+                <div class="field">
+                  <label for="peakHeight">Peak Height (ft)</label>
+                  <input type="number" id="peakHeight" step="0.1" min="0" />
+                </div>
+                <div class="field">
+                  <label for="descentAngle">Descent Angle (°)</label>
+                  <input type="number" id="descentAngle" step="0.1" min="0" />
+                </div>
+              </div>
+            </div>
+          </details>
+
           <button type="submit" class="btn-primary">Add Shot</button>
         </form>
       </section>
@@ -284,6 +474,7 @@
           <label for="filter" style="margin:0;">Filter</label>
           <select id="filter"><option value="">All clubs</option></select>
           <button class="btn-ghost" id="insightsBtn">📊 Insights</button>
+          <button class="btn-ghost" id="colsBtn">Show all metrics</button>
           <div class="spacer"></div>
           <button class="btn-ghost" id="importBtn">Import CSV / Excel</button>
           <button class="btn-ghost" id="exportBtn">Export CSV</button>
@@ -298,6 +489,7 @@
               <tr>
                 <th>#</th>
                 <th>Club</th>
+                <th>Swing</th>
                 <th>Club Spd</th>
                 <th>Ball Spd</th>
                 <th>Smash</th>
@@ -305,6 +497,12 @@
                 <th>Spin</th>
                 <th>Carry</th>
                 <th>Total</th>
+                <th class="adv" hidden>AoA</th>
+                <th class="adv" hidden>Path</th>
+                <th class="adv" hidden>Face</th>
+                <th class="adv" hidden>Side</th>
+                <th class="adv" hidden>Peak</th>
+                <th class="adv" hidden>Descent</th>
                 <th>Photo</th>
                 <th></th>
               </tr>
@@ -318,6 +516,71 @@
         </div>
       </section>
     </div>
+    </section>
+
+    <!-- ===================== Wedge Matrix ===================== -->
+    <section id="view-wedge" hidden>
+      <div class="view-head">
+        <h2>📐 Wedge Matrix</h2>
+        <p>Your carry distance for every wedge at every swing length, built from the shots
+          you log. Fill it in, memorise it, and you always know which club and which swing
+          covers the number in front of you.</p>
+      </div>
+
+      <div class="panel" style="margin-bottom:20px;">
+        <h2>Distance chart</h2>
+        <div class="matrix-wrap">
+          <table class="matrix" id="matrixTable"></table>
+        </div>
+        <div class="legend">
+          <span class="g">5+ shots — trust it</span>
+          <span class="r">1–4 shots — keep hitting</span>
+          <span class="y">Set by hand</span>
+        </div>
+        <div class="hint-sm" style="margin-top:10px;">
+          Tap any cell to see the detail, or to type in a number by hand if you already know it.
+          Log wedge shots on the <b>Log</b> tab and pick a swing length — they land here automatically.
+        </div>
+      </div>
+
+      <div class="grid two">
+        <div class="panel">
+          <h2>What do I hit from…</h2>
+          <div class="lookup">
+            <div class="field">
+              <label for="lookupYds">Yardage</label>
+              <input type="number" id="lookupYds" step="1" min="1" placeholder="e.g. 68" />
+            </div>
+            <button class="btn-primary" id="lookupBtn">Find it</button>
+          </div>
+          <div class="lookup-out" id="lookupOut"></div>
+        </div>
+
+        <div class="panel">
+          <h2>Coverage &amp; gaps</h2>
+          <div class="hint-sm">Every number in your matrix, longest to shortest, with the
+            gap between each. Holes bigger than 12 yards are where you get stuck between clubs.</div>
+          <div class="gaps" id="gapList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== Drills ===================== -->
+    <section id="view-drills" hidden>
+      <div class="view-head">
+        <h2>🎯 Drills</h2>
+        <p>Practice with a scorecard instead of a bucket of balls. Some drills score
+          themselves from the shots you log; the rest you score by hand. Every session is
+          saved so you can see whether the number is actually going up.</p>
+      </div>
+      <div class="toolbar">
+        <label for="drillFilter" style="margin:0;">Focus</label>
+        <select id="drillFilter"><option value="">All drills</option></select>
+        <div class="spacer"></div>
+        <button class="btn-ghost" id="clearDrillsBtn">Clear drill history</button>
+      </div>
+      <div class="drill-grid" id="drillGrid"></div>
+    </section>
   </main>
 
   <!-- Photo viewer -->
@@ -346,6 +609,34 @@
   </div>
   <div class="iv-tip" id="ivTip"></div>
 
+  <!-- Drill detail -->
+  <div class="modal" id="drillModal" hidden>
+    <div class="modal-inner wide">
+      <div class="iv-head">
+        <div>
+          <h2 id="dlTitle"></h2>
+          <div class="iv-scope" id="dlScope"></div>
+        </div>
+        <button type="button" class="btn-ghost" id="closeDrillBtn">Close</button>
+      </div>
+      <div class="dl-body" id="dlBody"></div>
+    </div>
+  </div>
+
+  <!-- Matrix cell detail -->
+  <div class="modal" id="cellModal" hidden>
+    <div class="modal-inner">
+      <div class="iv-head">
+        <div>
+          <h2 id="cellTitle" style="margin:0;font-size:1.1rem;"></h2>
+          <div class="iv-scope" id="cellScope"></div>
+        </div>
+        <button type="button" class="btn-ghost" id="closeCellBtn">Close</button>
+      </div>
+      <div id="cellBody" style="text-align:left;"></div>
+    </div>
+  </div>
+
   <script>
     // Storage keys kept as-is so previously saved shots/photos aren't orphaned by the rename.
     const STORAGE_KEY = "trackman-shots-v1";
@@ -353,6 +644,32 @@
 
     const $ = (id) => document.getElementById(id);
     const num = (v) => (v === "" || v === null || isNaN(parseFloat(v)) ? null : parseFloat(v));
+
+    // Swing lengths, shortest to longest is the reverse of this order.
+    const SWINGS = [
+      { key: "full", label: "Full", clock: "" },
+      { key: "three4", label: "3/4", clock: "10:30" },
+      { key: "half", label: "1/2", clock: "9:00" },
+      { key: "quarter", label: "1/4", clock: "7:30" },
+    ];
+    const SWING_LABEL = Object.fromEntries(SWINGS.map((s) => [s.key, s.label]));
+    // Shots logged before swing lengths existed are treated as full swings.
+    const swingOf = (s) => (s.swing && SWING_LABEL[s.swing] ? s.swing : "full");
+    // Clubs that belong in the wedge matrix, in loft order.
+    const WEDGES = ["PW", "GW", "SW", "LW"];
+    const isWedge = (club) => WEDGES.includes(String(club).trim().toUpperCase()) ||
+      /wedge/i.test(club) || /^(pitching|gap|sand|lob)\b/i.test(club);
+
+    // Extra delivery/flight metrics, kept in one place so the form, table, CSV and
+    // insights all stay in step.
+    const ADV_FIELDS = [
+      { key: "attackAngle", label: "Attack Angle", short: "AoA", unit: "°", dp: 1 },
+      { key: "clubPath", label: "Club Path", short: "Path", unit: "°", dp: 1 },
+      { key: "faceAngle", label: "Face Angle", short: "Face", unit: "°", dp: 1 },
+      { key: "offline", label: "Offline", short: "Side", unit: "yds", dp: 1 },
+      { key: "peakHeight", label: "Peak Height", short: "Peak", unit: "ft", dp: 0 },
+      { key: "descentAngle", label: "Descent Angle", short: "Descent", unit: "°", dp: 1 },
+    ];
 
     function load() {
       try {
@@ -446,8 +763,10 @@
         spinRate: num($("spinRate").value),
         carry: num($("carry").value),
         total: num($("total").value),
+        swing: currentSwing,
         hasPhoto: false,
       };
+      ADV_FIELDS.forEach((f) => { shot[f.key] = num($(f.key).value); });
       if (pendingPhoto) {
         try {
           await putPhoto(id, pendingPhoto);
@@ -461,8 +780,11 @@
       e.target.reset();
       clearScan();
       primeShotNo();
+      setSwing(currentSwing);   // keep the swing length for the next ball
       $("club").focus();
       render();
+      renderWedge();
+      renderDrills();
     });
 
     $("filter").addEventListener("change", render);
@@ -473,7 +795,7 @@
         save();
         try { await clearPhotos(); } catch (e) {}
         primeShotNo();
-        render();
+        renderAll();
       }
     });
 
@@ -483,7 +805,7 @@
       shots = shots.filter((s) => s.id !== id);
       save();
       try { await delPhoto(id); } catch (e) {}
-      render();
+      renderAll();
     }
 
     function currentFiltered() {
@@ -504,6 +826,7 @@
         <tr>
           <td>${s.shotNo == null ? "—" : s.shotNo}</td>
           <td><span class="club-tag">${s.club}</span></td>
+          <td>${SWING_LABEL[swingOf(s)]}</td>
           <td>${fmt(s.clubSpeed)}</td>
           <td>${fmt(s.ballSpeed)}</td>
           <td>${fmt(smash(s), 2)}</td>
@@ -511,6 +834,7 @@
           <td>${s.spinRate == null ? "—" : Math.round(s.spinRate).toLocaleString()}</td>
           <td>${fmt(s.carry)}</td>
           <td>${fmt(s.total)}</td>
+          ${ADV_FIELDS.map((f) => `<td class="adv"${showAdv ? "" : " hidden"}>${fmt(s[f.key], f.dp)}</td>`).join("")}
           <td class="photo-cell">${s.hasPhoto ? `<button class="thumb" data-photo="${s.id}" data-no="${s.shotNo == null ? "" : s.shotNo}" title="View / save photo">📷</button>` : "—"}</td>
           <td><button class="del" title="Delete" data-id="${s.id}">✕</button></td>
         </tr>`).join("");
@@ -521,7 +845,7 @@
         b.addEventListener("click", () => openPhoto(b.dataset.photo, b.dataset.no)));
 
       $("empty").style.display = rows.length ? "none" : "block";
-      document.querySelector(".table-wrap").style.display = rows.length ? "block" : "none";
+      document.querySelector("#view-log .table-wrap").style.display = rows.length ? "block" : "none";
 
       renderStats(rows);
     }
@@ -541,6 +865,7 @@
         { lbl: "Shots", val: rows.length, dp: 0 },
         { lbl: "Avg Carry", val: avg(rows, "carry") },
         { lbl: "Avg Ball Spd", val: avg(rows, "ballSpeed") },
+        { lbl: "Avg Club Spd", val: avg(rows, "clubSpeed") },
         { lbl: "Avg Smash", val: avg(rows, "smash"), dp: 2 },
         { lbl: "Longest Carry", val: max(rows, "carry") },
       ];
@@ -553,12 +878,14 @@
 
     function exportCsv() {
       if (!shots.length) return;
-      const header = ["Timestamp", "Shot #", "Club", "Club Speed", "Ball Speed", "Smash Factor", "Launch Angle", "Spin Rate", "Carry", "Total"];
+      const header = ["Timestamp", "Shot #", "Club", "Swing", "Club Speed", "Ball Speed", "Smash Factor",
+        "Launch Angle", "Spin Rate", "Carry", "Total"].concat(ADV_FIELDS.map((f) => f.label));
       const lines = [header.join(",")];
       currentFiltered().forEach((s) => {
         const sm = smash(s);
-        const vals = [s.ts, s.shotNo, s.club, s.clubSpeed, s.ballSpeed, sm == null ? "" : sm.toFixed(2),
-          s.launchAngle, s.spinRate, s.carry, s.total];
+        const vals = [s.ts, s.shotNo, s.club, SWING_LABEL[swingOf(s)], s.clubSpeed, s.ballSpeed,
+          sm == null ? "" : sm.toFixed(2),
+          s.launchAngle, s.spinRate, s.carry, s.total].concat(ADV_FIELDS.map((f) => s[f.key]));
         lines.push(vals.map((v) => (v == null ? "" : String(v))).join(","));
       });
       const blob = new Blob([lines.join("\n")], { type: "text/csv" });
@@ -613,7 +940,24 @@
       carry: ["carry", "carrydistance", "carryyds", "carrydist", "carryyards"],
       total: ["total", "totaldistance", "totaldist", "totalyds", "totalyards"],
       ts: ["timestamp", "date", "time", "datetime", "shotdate"],
+      swing: ["swing", "swinglength", "swingsize"],
+      attackAngle: ["attackangle", "attackang", "aoa", "angleofattack", "attack"],
+      clubPath: ["clubpath", "path", "swingpath", "hpath", "horizontalpath"],
+      faceAngle: ["faceangle", "face", "clubface", "facetotarget", "faceang"],
+      offline: ["offline", "side", "sidedistance", "lateral", "carryoffline", "sidecarry"],
+      peakHeight: ["peakheight", "peak", "apex", "height", "maxheight", "apexheight"],
+      descentAngle: ["descentangle", "descent", "landingangle", "descentang", "angleofdescent"],
     };
+
+    // "3/4", "three quarter", "10:30", "half", "9 oclock" -> a swing key.
+    function parseSwing(v) {
+      if (v == null) return "full";
+      const t = String(v).toLowerCase();
+      if (/10:?30|3\s*\/?\s*4|three\s*quarter|threequarter|0\.75/.test(t)) return "three4";
+      if (/9:?00|9\s*o|1\s*\/?\s*2|half|0\.5/.test(t)) return "half";
+      if (/7:?30|1\s*\/?\s*4|quarter|0\.25/.test(t)) return "quarter";
+      return "full";
+    }
 
     function cleanNum(v) {
       if (v == null) return null;
@@ -661,9 +1005,12 @@
           spinRate: cleanNum(get(row, "spinRate")),
           carry: cleanNum(get(row, "carry")),
           total: cleanNum(get(row, "total")),
+          swing: parseSwing(get(row, "swing")),
           hasPhoto: false,
         };
-        const hasNum = ["clubSpeed", "ballSpeed", "launchAngle", "spinRate", "carry", "total"].some((k) => shot[k] != null);
+        ADV_FIELDS.forEach((f) => { shot[f.key] = cleanNum(get(row, f.key)); });
+        const hasNum = ["clubSpeed", "ballSpeed", "launchAngle", "spinRate", "carry", "total"]
+          .concat(ADV_FIELDS.map((f) => f.key)).some((k) => shot[k] != null);
         if (club === "Unknown" && !hasNum) continue;   // skip blank/junk rows
         newShots.push(shot);
       }
@@ -671,7 +1018,7 @@
       shots = newShots.concat(shots);   // keep file order, newest batch on top
       save();
       primeShotNo();
-      render();
+      renderAll();
       return { added: newShots.length };
     }
 
@@ -729,9 +1076,13 @@
     const r0 = (x) => (x == null ? null : Math.round(x));
     const r1 = (x) => (x == null ? null : Math.round(x * 10) / 10);
 
+    // A half wedge is a different shot from a full one, so it gets its own row in
+    // the stats — otherwise "PW ±25 yds" just means you hit it four different lengths.
+    const groupLabel = (s) => s.club + (swingOf(s) === "full" ? "" : " " + SWING_LABEL[swingOf(s)]);
+
     function computeInsights(data) {
       const byClub = {};
-      data.forEach((s) => { (byClub[s.club] = byClub[s.club] || []).push(s); });
+      data.forEach((s) => { const k = groupLabel(s); (byClub[k] = byClub[k] || []).push(s); });
       const clubs = Object.keys(byClub).map((club) => {
         const g = byClub[club];
         const pick = (k) => g.map((s) => s[k]);
@@ -744,6 +1095,7 @@
           launch: stat(pick("launchAngle")),
           spin: stat(pick("spinRate")),
           smash: stat(g.map((s) => smash(s))),
+          adv: Object.fromEntries(ADV_FIELDS.map((f) => [f.key, stat(pick(f.key))])),
         };
       });
       // distinct days
@@ -782,6 +1134,35 @@
           t.push({ ic: "🔁", html: `<b>${g.from}</b> and <b>${g.to}</b> carry about the same (${r0(g.gap)} yds apart) — you may not need both.` });
         }
       }
+      // Shot shape from path vs face, when the numbers are there.
+      const pathS = stat(data.map((s) => s.clubPath));
+      const faceS = stat(data.map((s) => s.faceAngle));
+      if (pathS && pathS.n >= 5) {
+        const p = pathS.mean;
+        const dir = Math.abs(p) < 1 ? "neutral" : p > 0 ? "in-to-out" : "out-to-in";
+        let msg = `Your club path averages <b>${r1(Math.abs(p))}° ${dir}</b>`;
+        if (faceS && faceS.n >= 5) {
+          const rel = faceS.mean - p;   // face relative to path is what curves the ball
+          const curve = Math.abs(rel) < 1.5 ? "the ball is starting and staying pretty straight"
+            : rel > 0 ? `the face sits <b>${r1(rel)}° open to it</b>, so the ball curves right`
+            : `the face sits <b>${r1(-rel)}° closed to it</b>, so the ball curves left`;
+          msg += ` and ${curve}.`;
+        } else { msg += "."; }
+        t.push({ ic: "↩️", html: msg });
+      }
+      const aoaDrv = stat(data.filter((s) => /driver/i.test(s.club)).map((s) => s.attackAngle));
+      if (aoaDrv && aoaDrv.n >= 3) {
+        const a = aoaDrv.mean;
+        const verdict = a >= 1 ? "hitting up on it, which is where the free distance is"
+          : a >= -1 ? "level through the ball — a touch more up would add carry"
+          : "hitting down on the driver, which costs you carry and adds spin";
+        t.push({ ic: "⛳", html: `Driver attack angle averages <b>${a > 0 ? "+" : ""}${r1(a)}°</b> — ${verdict}.` });
+      }
+      const off = stat(data.map((s) => s.offline));
+      if (off && off.n >= 5 && Math.abs(off.mean) >= 3) {
+        t.push({ ic: "🧭", html: `Your average shot finishes <b>${r1(Math.abs(off.mean))} yds ${off.mean > 0 ? "right" : "left"}</b> of target — worth checking your alignment before your swing.` });
+      }
+
       const drv = clubs.find((c) => /driver/i.test(c.club) && c.smash);
       if (drv && drv.smash.mean) {
         const sm = drv.smash.mean;
@@ -794,7 +1175,7 @@
 
     function ivCarryChart(withCarry) {
       if (!withCarry.length) return "";
-      const rows = withCarry.slice(0, 14);
+      const rows = withCarry.slice(0, 20);
       const W = 720, rowH = 34, padL = 92, padR = 58, padT = 6, padB = 6;
       const H = padT + padB + rows.length * rowH;
       const maxV = Math.max(...rows.map((c) => (c.carry.max != null ? c.carry.max : c.carry.mean)));
@@ -845,6 +1226,32 @@
         <tbody>${body}</tbody></table></div>`;
     }
 
+    // Second table, only shown when there's delivery/flight data to show.
+    function ivAdvTable(clubs) {
+      const cols = ADV_FIELDS.filter((f) => clubs.some((c) => c.adv[f.key]));
+      if (!cols.length) return "";
+      const ordered = clubs.filter((c) => cols.some((f) => c.adv[f.key]))
+        .sort((a, b) => ((b.carry ? b.carry.mean : -1) - (a.carry ? a.carry.mean : -1)));
+      if (!ordered.length) return "";
+      const body = ordered.map((c) => `
+        <tr>
+          <td><span class="club-tag">${c.club}</span></td>
+          ${cols.map((f) => {
+            const st = c.adv[f.key];
+            if (!st) return "<td>—</td>";
+            const v = f.dp ? r1(st.mean) : r0(st.mean);
+            const sign = (f.key === "attackAngle" || f.key === "clubPath" || f.key === "faceAngle" || f.key === "offline") && st.mean > 0 ? "+" : "";
+            return `<td>${sign}${v}</td>`;
+          }).join("")}
+        </tr>`).join("");
+      return `<div class="iv-section"><h3>Delivery &amp; flight</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Club</th>${cols.map((f) => `<th>${f.short} (${f.unit})</th>`).join("")}</tr></thead>
+          <tbody>${body}</tbody></table></div>
+        <div class="hint-sm" style="margin-top:8px;">Path and face: <b>+</b> is in-to-out / open.
+          Offline: <b>+</b> is right of target.</div></div>`;
+    }
+
     function renderInsights() {
       const data = shots;
       const ins = computeInsights(data);
@@ -864,7 +1271,8 @@
       $("ivBody").innerHTML =
         `<div class="iv-section"><h3>Takeaways</h3>${takeaways}</div>` +
         chart +
-        `<div class="iv-section"><h3>By club</h3>${ivTable(ins.clubs)}</div>`;
+        `<div class="iv-section"><h3>By club</h3>${ivTable(ins.clubs)}</div>` +
+        ivAdvTable(ins.clubs);
       // chart tooltips
       $("ivBody").querySelectorAll(".barhit").forEach((el) => {
         const show = (ev) => {
@@ -967,6 +1375,12 @@
         ["spinRate", ["SPIN RATE", "SPINRATE", "SPIN"]],
         ["carry", ["CARRY"]],
         ["total", ["TOTAL"]],
+        ["attackAngle", ["ATTACK ANGLE", "ATTACK ANG", "ANGLE OF ATTACK", "AOA"]],
+        ["clubPath", ["CLUB PATH", "SWING PATH", "PATH"]],
+        ["faceAngle", ["FACE ANGLE", "CLUB FACE", "FACE"]],
+        ["offline", ["OFFLINE", "SIDE"]],
+        ["peakHeight", ["PEAK HEIGHT", "APEX", "HEIGHT"]],
+        ["descentAngle", ["DESCENT ANGLE", "LANDING ANGLE", "DESCENT"]],
       ];
       let filled = 0;
       for (const [id, labels] of map) {
@@ -1037,8 +1451,665 @@
       }
     });
 
+
+    /* ---------- View tabs ---------- */
+    const VIEWS = ["log", "wedge", "drills"];
+    function showView(name) {
+      VIEWS.forEach((v) => { $("view-" + v).hidden = v !== name; });
+      $("tabs").querySelectorAll(".tab").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
+      if (name === "wedge") renderWedge();
+      if (name === "drills") renderDrills();
+    }
+    $("tabs").addEventListener("click", (e) => {
+      const b = e.target.closest(".tab");
+      if (b) showView(b.dataset.view);
+    });
+
+    function renderAll() { render(); renderWedge(); renderDrills(); }
+
+    /* ---------- Swing length selector ---------- */
+    let currentSwing = "full";
+    function setSwing(key) {
+      currentSwing = key;
+      $("swingSeg").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.swing === key));
+      const sw = SWINGS.find((s) => s.key === key);
+      $("swingHint").textContent = sw && sw.clock ? "— " + sw.clock + " backswing" : "";
+    }
+    $("swingSeg").addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (b) setSwing(b.dataset.swing);
+    });
+
+    /* ---------- Extra metric columns ---------- */
+    let showAdv = false;
+    $("colsBtn").addEventListener("click", () => {
+      showAdv = !showAdv;
+      $("colsBtn").textContent = showAdv ? "Hide extra metrics" : "Show all metrics";
+      document.querySelectorAll("#view-log th.adv").forEach((el) => { el.hidden = !showAdv; });
+      render();
+    });
+
+    /* ===================================================================
+       WEDGE MATRIX
+       =================================================================== */
+    const MANUAL_KEY = "golf-wedge-manual-v1";
+    let manualMatrix = (() => {
+      try { return JSON.parse(localStorage.getItem(MANUAL_KEY)) || {}; } catch (e) { return {}; }
+    })();
+    const saveManual = () => localStorage.setItem(MANUAL_KEY, JSON.stringify(manualMatrix));
+
+    // Map whatever the club was called ("Pitching Wedge", "PW", "52", "52°")
+    // onto one of the four matrix rows. Returns null if it isn't a wedge.
+    function wedgeKey(club) {
+      const t = String(club || "").trim().toLowerCase();
+      if (/^pw\b|pitch/.test(t)) return "PW";
+      if (/^(gw|aw)\b|gap|approach|utility wedge/.test(t)) return "GW";
+      if (/^sw\b|sand/.test(t)) return "SW";
+      if (/^lw\b|lob/.test(t)) return "LW";
+      const deg = t.match(/(\d{2})\s*(?:°|deg|degree)?/);
+      if (deg) {
+        const d = parseInt(deg[1], 10);
+        if (d >= 44 && d <= 48) return "PW";
+        if (d >= 49 && d <= 53) return "GW";
+        if (d >= 54 && d <= 57) return "SW";
+        if (d >= 58 && d <= 64) return "LW";
+      }
+      return null;
+    }
+
+    // Rows: the four standard wedges, plus any other wedge-ish club that was logged
+    // under a name we can't place (so nothing quietly disappears).
+    function matrixRows() {
+      const extra = [...new Set(shots.filter((s) => isWedge(s.club) && !wedgeKey(s.club)).map((s) => s.club))];
+      return WEDGES.concat(extra);
+    }
+    function rowMatches(row, s) {
+      return WEDGES.includes(row) ? wedgeKey(s.club) === row : s.club === row;
+    }
+
+    // One cell = one club at one swing length.
+    function cellData(row, swing) {
+      const hits = shots.filter((s) => rowMatches(row, s) && swingOf(s) === swing && s.carry != null);
+      const st = stat(hits.map((s) => s.carry));
+      const manual = manualMatrix[row + "|" + swing];
+      return {
+        row, swing, hits, stat: st,
+        manual: manual == null ? null : manual,
+        // Measured numbers win over a hand-typed one once you've actually hit some.
+        yds: st ? st.mean : (manual == null ? null : manual),
+        source: st ? "measured" : (manual == null ? null : "manual"),
+      };
+    }
+    function allCells() {
+      const out = [];
+      matrixRows().forEach((row) => SWINGS.forEach((sw) => {
+        const c = cellData(row, sw.key);
+        if (c.yds != null) out.push(c);
+      }));
+      return out;
+    }
+
+    function renderWedge() {
+      const rows = matrixRows();
+      let html = "<thead><tr><th>Club</th>" +
+        SWINGS.map((sw) => `<th>${sw.label}${sw.clock ? `<small>${sw.clock}</small>` : "<small>&nbsp;</small>"}</th>`).join("") +
+        "</tr></thead><tbody>";
+      rows.forEach((row) => {
+        html += `<tr><th>${row}</th>`;
+        SWINGS.forEach((sw) => {
+          const c = cellData(row, sw.key);
+          let cls = "cell", main, sub;
+          if (c.stat) {
+            const n = c.stat.n;
+            cls += n >= 5 ? " solid" : " thin";
+            main = r0(c.stat.mean);
+            sub = `${n} shot${n === 1 ? "" : "s"}` + (c.stat.sd != null ? ` ±${r1(c.stat.sd)}` : "");
+          } else if (c.manual != null) {
+            cls += " manual";
+            main = r0(c.manual);
+            sub = "by hand";
+          } else {
+            cls += " empty-cell";
+            main = "—";
+            sub = "tap to add";
+          }
+          html += `<td><button class="${cls}" data-row="${esc(row)}" data-swing="${sw.key}">${main}<span class="sub">${sub}</span></button></td>`;
+        });
+        html += "</tr>";
+      });
+      html += "</tbody>";
+      $("matrixTable").innerHTML = html;
+      $("matrixTable").querySelectorAll(".cell").forEach((b) =>
+        b.addEventListener("click", () => openCell(b.dataset.row, b.dataset.swing)));
+
+      renderGaps();
+    }
+
+    const esc = (v) => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const cellName = (c) => `${c.row} ${SWING_LABEL[c.swing]}`;
+
+    function renderGaps() {
+      const cells = allCells().sort((a, b) => b.yds - a.yds);
+      if (!cells.length) {
+        $("gapList").innerHTML = `<div class="iv-empty">Log wedge shots (or type a couple of numbers into the
+          matrix) and your yardage ladder shows up here.</div>`;
+        return;
+      }
+      let html = "";
+      cells.forEach((c, i) => {
+        const next = cells[i + 1];
+        let flag = "";
+        if (next) {
+          const gap = c.yds - next.yds;
+          if (gap > 12) flag = `<span class="flag hole">${r0(gap)} yd hole</span>`;
+          else if (gap < 4) flag = `<span class="flag dupe">only ${r1(gap)} apart</span>`;
+          else flag = `<span class="flag">${r0(gap)} yd gap</span>`;
+        }
+        html += `<div class="gap-row"><span class="yds">${r0(c.yds)}</span>
+          <span class="who">${cellName(c)}${c.source === "manual" ? " · by hand" : ""}</span>${flag}</div>`;
+      });
+      const lo = cells[cells.length - 1], hi = cells[0];
+      html += cells.length > 1
+        ? `<div class="hint-sm" style="margin-top:10px;">Covering <b>${r0(lo.yds)}–${r0(hi.yds)} yds</b>
+           across ${cells.length} club-and-swing combinations.</div>`
+        : `<div class="hint-sm" style="margin-top:10px;">One number so far. Fill in a few more squares to see your gaps.</div>`;
+      $("gapList").innerHTML = html;
+    }
+
+    /* ----- "What do I hit from X?" ----- */
+    function lookup(target) {
+      const cells = allCells();
+      if (!cells.length) return null;
+      return cells
+        .map((c) => ({ c, delta: c.yds - target }))
+        .sort((a, b) => Math.abs(a.delta) - Math.abs(b.delta))
+        .slice(0, 3);
+    }
+    function runLookup() {
+      const target = num($("lookupYds").value);
+      const out = $("lookupOut");
+      if (target == null || target <= 0) { out.innerHTML = `<div class="iv-empty">Type in a yardage.</div>`; return; }
+      const res = lookup(target);
+      if (!res) {
+        out.innerHTML = `<div class="iv-empty">Nothing in the matrix yet — log some wedge shots first.</div>`;
+        return;
+      }
+      out.innerHTML = res.map((r, i) => {
+        const d = r.delta;
+        const how = Math.abs(d) < 1.5 ? "right on the number"
+          : d > 0 ? `carries <b>${r1(d)} yds long</b> — take a touch off`
+          : `carries <b>${r1(-d)} yds short</b> — lean on it`;
+        const conf = r.c.stat
+          ? `${r.c.stat.n} shot${r.c.stat.n === 1 ? "" : "s"}${r.c.stat.sd != null ? `, ±${r1(r.c.stat.sd)} yds` : ""}`
+          : "set by hand";
+        return `<div class="rec${i === 0 ? " best" : ""}">
+          <span class="badge">${cellName(r.c)}</span>
+          <span class="grow">${r0(r.c.yds)} yds — ${how}</span>
+          <span class="delta">${conf}</span>
+        </div>`;
+      }).join("");
+    }
+    $("lookupBtn").addEventListener("click", runLookup);
+    $("lookupYds").addEventListener("keydown", (e) => { if (e.key === "Enter") runLookup(); });
+
+    /* ----- Cell detail ----- */
+    let openCellKey = null;
+    function openCell(row, swing) {
+      openCellKey = row + "|" + swing;
+      const c = cellData(row, swing);
+      const sw = SWINGS.find((x) => x.key === swing);
+      $("cellTitle").textContent = `${row} · ${sw.label} swing`;
+      $("cellScope").textContent = sw.clock ? `${sw.clock} backswing` : "Full swing";
+      const recent = c.hits.slice(0, 8).map((s) => r1(s.carry)).join(", ");
+      const statsHtml = c.stat
+        ? `<div class="dl-target">
+             <b style="font-size:1.3rem;">${r0(c.stat.mean)} yds</b> average carry over ${c.stat.n} shot${c.stat.n === 1 ? "" : "s"}<br>
+             Range ${r0(c.stat.min)}–${r0(c.stat.max)} yds${c.stat.sd != null ? ` · consistency ±${r1(c.stat.sd)} yds` : ""}
+             ${recent ? `<div class="hint-sm" style="margin:8px 0 0;">Recent carries: ${recent}</div>` : ""}
+           </div>`
+        : `<div class="dl-target">No shots logged for this square yet. Hit five, or type your number in below.</div>`;
+      $("cellBody").innerHTML = statsHtml + `
+        <h4 style="margin:18px 0 6px;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);">Set by hand</h4>
+        <div class="dl-log">
+          <div class="field grow" style="margin:0;">
+            <label for="cellManual">Carry (yds)</label>
+            <input type="number" id="cellManual" step="1" min="0" value="${c.manual == null ? "" : c.manual}" placeholder="e.g. 62" />
+          </div>
+          <button class="btn-primary" id="cellSave">Save</button>
+          <button class="btn-ghost" id="cellClear">Clear</button>
+        </div>
+        <div class="hint-sm" style="margin-top:8px;">A hand-typed number fills the square until you have
+          real shots for it — logged shots always take over.</div>`;
+      $("cellSave").addEventListener("click", () => {
+        const v = num($("cellManual").value);
+        if (v == null) delete manualMatrix[openCellKey]; else manualMatrix[openCellKey] = v;
+        saveManual(); renderWedge(); closeCell();
+      });
+      $("cellClear").addEventListener("click", () => {
+        delete manualMatrix[openCellKey];
+        saveManual(); renderWedge(); closeCell();
+      });
+      $("cellModal").hidden = false;
+    }
+    function closeCell() { $("cellModal").hidden = true; }
+    $("closeCellBtn").addEventListener("click", closeCell);
+    $("cellModal").addEventListener("click", (e) => { if (e.target.id === "cellModal") closeCell(); });
+
+
+    /* ===================================================================
+       DRILLS
+       =================================================================== */
+    const DRILL_KEY = "golf-drill-log-v1";
+    let drillLog = (() => {
+      try { return JSON.parse(localStorage.getItem(DRILL_KEY)) || []; } catch (e) { return []; }
+    })();
+    const saveDrills = () => localStorage.setItem(DRILL_KEY, JSON.stringify(drillLog));
+
+    // What a well-struck ball should smash at, by club. Used by the strike drill.
+    function smashTarget(club) {
+      const t = String(club).toLowerCase();
+      if (/driver/.test(t)) return 1.48;
+      if (/wood/.test(t)) return 1.46;
+      if (/hybrid/.test(t)) return 1.43;
+      if (/^[3-6]\s*iron/.test(t)) return 1.38;
+      if (/^[7-9]\s*iron/.test(t)) return 1.33;
+      if (isWedge(club)) return 1.22;
+      return 1.35;
+    }
+
+    // Shots that carry a given metric, newest first.
+    const withMetric = (key, n) => shots.filter((s) => s[key] != null).slice(0, n);
+
+    const DRILLS = [
+      {
+        id: "matrix", icon: "📐", name: "Build the Matrix", cat: "Wedge",
+        why: "Every partial wedge is a guess until the square it lives in has real numbers in it. This is the drill that fills the chart.",
+        setup: [
+          "One wedge at a time, and a way to see carry (sim, launch monitor, or measured range markers).",
+          "The Log tab open with the matching swing length selected before you hit.",
+        ],
+        steps: [
+          "Pick one club and one swing length — say SW at 9:00.",
+          "Hit 5 balls at that exact swing. Same tempo, same finish length, every time.",
+          "Log all 5, including the bad ones. The average is the honest number; the scatter tells you how much to trust it.",
+          "Move to the next square. Never try to hit a yardage — record what the swing actually does.",
+        ],
+        target: "Five or more logged shots in every square you'd actually use on the course.",
+        scoring: { mode: "auto", unit: "squares" },
+        auto() {
+          const rows = matrixRows();
+          const cells = [];
+          rows.forEach((r) => SWINGS.forEach((sw) => cells.push(cellData(r, sw.key))));
+          const done = cells.filter((c) => c.stat && c.stat.n >= 5).length;
+          const started = cells.filter((c) => c.stat && c.stat.n > 0 && c.stat.n < 5);
+          return {
+            score: done, max: cells.length,
+            text: done === cells.length
+              ? "Matrix complete — every square has five or more shots behind it."
+              : `${done} of ${cells.length} squares are dialled in.` +
+                (started.length ? ` ${started.length} more ${started.length === 1 ? "is" : "are"} part-way there.` : ""),
+            detail: started.slice(0, 6).map((c) => `${cellName(c)} — ${c.stat.n} of 5 shots`),
+          };
+        },
+      },
+      {
+        id: "ladder", icon: "🪜", name: "Ladder Drill", cat: "Wedge",
+        why: "Trains you to change distance with swing length rather than by swinging harder or softer at the same length.",
+        setup: ["Five targets stepping up in distance — 40, 50, 60, 70, 80 yds (use your own numbers if those aren't your gaps)."],
+        steps: [
+          "Hit one ball to 40, then 50, 60, 70, 80 — one ball each, in order.",
+          "Then come back down: 80, 70, 60, 50, 40.",
+          "Before every ball, say out loud which club and which swing you're using. Commit to it.",
+          "Score a point for each ball that finishes within 5 yards of its number.",
+        ],
+        target: "7 out of 10 to pass. 9 or 10 and you should stretch the targets further apart.",
+        scoring: { mode: "manual", max: 10, unit: "of 10" },
+      },
+      {
+        id: "random", icon: "🎲", name: "Random Number Game", cat: "Wedge",
+        why: "On the course you never get the same yardage twice in a row. This makes you pick a club and a swing under a bit of pressure, from cold.",
+        setup: ["Your wedge matrix, and a target you can judge distance to."],
+        steps: [
+          "Tap the button below for a number.",
+          "Decide your club and swing BEFORE you look at what the matrix says.",
+          "Reveal the matrix answer and see whether you agreed with yourself.",
+          "Hit the shot. A point if it finishes within 8% of the number (about 5 yds at 60).",
+          "Ten balls, ten different numbers.",
+        ],
+        target: "6 of 10 is a good day. The real win is picking the same club the matrix picks.",
+        scoring: { mode: "manual", max: 10, unit: "of 10" },
+        tool: "random-yardage",
+      },
+      {
+        id: "strike", icon: "💥", name: "Centre-Strike Chase", cat: "Speed & Strike",
+        why: "Smash factor is the cheapest distance there is — same swing, better contact, more ball speed. This scores your last 25 shots against what each club should be doing.",
+        setup: ["Any club. You need both club speed and ball speed logged for this to score."],
+        steps: [
+          "Hit normally and log club speed and ball speed for each shot.",
+          "Don't swing harder. Try to feel the middle of the face and let the number tell you if you found it.",
+          "Foot spray or impact tape on the face makes the feedback instant.",
+        ],
+        target: "Driver 1.48+, woods 1.46, hybrids 1.43, mid irons 1.38, short irons 1.33, wedges around 1.22.",
+        scoring: { mode: "auto", unit: "shots" },
+        auto() {
+          const pool = shots.filter((s) => smash(s) != null).slice(0, 25);
+          if (pool.length < 3) return { need: "Log at least 3 shots with both club speed and ball speed." };
+          const good = pool.filter((s) => smash(s) >= smashTarget(s.club));
+          const byClub = {};
+          pool.forEach((s) => { const k = groupLabel(s); (byClub[k] = byClub[k] || []).push(smash(s)); });
+          const detail = Object.keys(byClub).map((club) => {
+            const m = byClub[club].reduce((a, b) => a + b, 0) / byClub[club].length;
+            const tgt = smashTarget(club);
+            return `${club} — ${m.toFixed(2)} avg vs ${tgt.toFixed(2)} target ${m >= tgt ? "✓" : `(${(tgt - m).toFixed(2)} to find)`}`;
+          });
+          return {
+            score: good.length, max: pool.length,
+            text: `${good.length} of your last ${pool.length} shots met the smash target for the club in hand.`,
+            detail,
+          };
+        },
+      },
+      {
+        id: "window", icon: "🎯", name: "Carry Window", cat: "Consistency",
+        why: "Your average yardage is useless if half the shots miss it by 15 yards. This measures how tight the window actually is.",
+        setup: ["One club — pick the one you hit most into greens."],
+        steps: [
+          "Hit 10 shots with the same club and log every carry.",
+          "Don't reset after a bad one. The bad ones are the point.",
+          "Score a point for each carry within 5 yards of the middle of the 10.",
+        ],
+        target: "7 of 10 inside a 10-yard window. That's a club you can aim at a flag with.",
+        scoring: { mode: "auto", unit: "shots" },
+        auto() {
+          const byClub = {};
+          shots.filter((s) => s.carry != null).forEach((s) => {
+            const k = groupLabel(s);
+            (byClub[k] = byClub[k] || []).push(s.carry);
+          });
+          const clubs = Object.keys(byClub).filter((c) => byClub[c].length >= 5);
+          if (!clubs.length) return { need: "Log at least 5 carries with one club." };
+          const club = clubs.sort((a, b) => byClub[b].length - byClub[a].length)[0];
+          const last = byClub[club].slice(0, 10);
+          const sorted = last.slice().sort((a, b) => a - b);
+          const mid = sorted.length % 2 ? sorted[(sorted.length - 1) / 2]
+            : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2;
+          const inside = last.filter((v) => Math.abs(v - mid) <= 5).length;
+          return {
+            score: inside, max: last.length,
+            text: `${club}: ${inside} of the last ${last.length} carries landed within 5 yds of ${r0(mid)}.`,
+            detail: [`Window ${r0(mid - 5)}–${r0(mid + 5)} yds`, `Spread ${r0(Math.min(...last))}–${r0(Math.max(...last))} yds`],
+          };
+        },
+      },
+      {
+        id: "gate", icon: "🚪", name: "Start Line Gate", cat: "Dispersion",
+        why: "Most misses are start-line misses. If the ball leaves on line, an ordinary curve still finds the green.",
+        setup: [
+          "Two alignment sticks (or headcovers) about 6 feet ahead, a couple of club-head widths wider than the ball.",
+          "In a sim, just pick a target line and log the offline number.",
+        ],
+        steps: [
+          "Aim at a specific target — a flag, not 'the middle'.",
+          "Hit 20 balls through the gate. Nothing else matters: not distance, not the strike.",
+          "Log offline for each one if your monitor gives it.",
+          "Score a point for every ball inside 8 yards either side.",
+        ],
+        target: "15 of 20. Then narrow the gate rather than adding more balls.",
+        scoring: { mode: "auto", unit: "shots" },
+        auto() {
+          const pool = withMetric("offline", 20);
+          if (pool.length < 3) return { need: "Log offline (Side) distance on at least 3 shots — it's under More metrics." };
+          const inside = pool.filter((s) => Math.abs(s.offline) <= 8).length;
+          const mean = pool.reduce((a, s) => a + s.offline, 0) / pool.length;
+          const bias = Math.abs(mean) < 2 ? "no real bias — nicely centred"
+            : mean > 0 ? `average miss is ${r1(mean)} yds right` : `average miss is ${r1(-mean)} yds left`;
+          return {
+            score: inside, max: pool.length,
+            text: `${inside} of your last ${pool.length} shots finished within 8 yds of the line.`,
+            detail: [bias],
+          };
+        },
+      },
+      {
+        id: "gapping", icon: "📏", name: "Two-Club Gap Test", cat: "Gapping",
+        why: "Finds the yardages you can't actually cover — the ones where you're between clubs and end up steering it.",
+        setup: ["Two clubs that sit next to each other in the bag."],
+        steps: [
+          "Alternate: club A, club B, A, B — five balls each.",
+          "Full swings only, normal tempo. No trying to squeeze one out.",
+          "Compare the two averages on the Insights screen.",
+          "Score a point for each ball that lands in its club's own window rather than the other club's.",
+        ],
+        target: "A gap of 10–15 yards between neighbouring clubs. Less than 8 and one of them is doing nothing for you.",
+        scoring: { mode: "manual", max: 10, unit: "of 10" },
+      },
+      {
+        id: "tempo", icon: "🎵", name: "3:1 Tempo Count", cat: "Tempo",
+        why: "Good players take about three times as long going back as they do coming down. Tempo steadies strike and distance at the same time.",
+        setup: ["Any club. Count out loud or use a metronome at 76 bpm."],
+        steps: [
+          "Count 'one-two-three' on the way back, 'one' from the top to impact.",
+          "Hit 10 balls staying with the count, whatever happens to the shot.",
+          "Score a point for each ball where you kept the count all the way through.",
+          "Finish with three balls at a deliberately slower count — that's your on-course tempo under pressure.",
+        ],
+        target: "8 of 10 with the count intact. Carry distance usually tightens up on its own.",
+        scoring: { mode: "manual", max: 10, unit: "of 10" },
+      },
+      {
+        id: "lowpoint", icon: "🪄", name: "Towel Low-Point", cat: "Strike",
+        why: "Fat shots are a low-point problem, not a swing-thought problem. This gives you instant, honest feedback on where the club is bottoming out.",
+        setup: ["A folded towel laid down about 2 inches behind the ball."],
+        steps: [
+          "Hit 10 shots without touching the towel.",
+          "Feel the weight into the lead side and the hands ahead through impact.",
+          "Score a point for each ball struck clean with the towel untouched.",
+          "As it gets easy, move the towel closer to the ball.",
+        ],
+        target: "8 of 10 clean. If you're under 5, move the towel back an inch and rebuild from there.",
+        scoring: { mode: "manual", max: 10, unit: "of 10" },
+      },
+      {
+        id: "updown", icon: "🏁", name: "Up & Down 9", cat: "Short Game",
+        why: "Practice with a scorecard and consequences. This is the closest a range session gets to the real thing.",
+        setup: ["Nine different lies and distances around one green — or nine different sim shots inside 60 yards."],
+        steps: [
+          "Play nine shots, each from a genuinely different spot. Never the same shot twice.",
+          "One ball only. No mulligans, no rakes.",
+          "Score a point for each one you'd get up and down from — inside 6 feet counts.",
+          "Write the number down every time you play it. That number is your short game.",
+        ],
+        target: "5 of 9 is respectable. 7 of 9 and you're saving real shots on the course.",
+        scoring: { mode: "manual", max: 9, unit: "of 9" },
+      },
+    ];
+
+    const drillById = (id) => DRILLS.find((d) => d.id === id);
+    const sessionsFor = (id) => drillLog.filter((r) => r.drill === id);
+
+    function drillSummary(d) {
+      const runs = sessionsFor(d.id);
+      if (!runs.length) return null;
+      const last = runs[0];
+      const best = runs.reduce((a, b) => ((b.score / b.max) > (a.score / a.max) ? b : a));
+      return { runs, last, best };
+    }
+    function pillClass(score, max) {
+      const p = max ? score / max : 0;
+      return p >= 0.7 ? "pass" : p >= 0.5 ? "near" : "";
+    }
+    const when = (ts) => {
+      const d = new Date(ts);
+      return isNaN(d) ? "" : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    };
+
+    function renderDrills() {
+      const sel = $("drillFilter");
+      const cats = [...new Set(DRILLS.map((d) => d.cat))];
+      const prev = sel.value;
+      sel.innerHTML = '<option value="">All drills</option>' +
+        cats.map((c) => `<option${c === prev ? " selected" : ""}>${c}</option>`).join("");
+
+      const list = prev ? DRILLS.filter((d) => d.cat === prev) : DRILLS;
+      $("drillGrid").innerHTML = list.map((d) => {
+        const sum = drillSummary(d);
+        let head = "";
+        if (d.scoring.mode === "auto") {
+          const res = d.auto();
+          head = res.need
+            ? `<span class="score-pill">Needs data</span>`
+            : `<span class="score-pill ${pillClass(res.score, res.max)}">${res.score} / ${res.max} ${d.scoring.unit}</span>`;
+        } else if (sum) {
+          head = `<span class="score-pill ${pillClass(sum.last.score, sum.last.max)}">Last ${sum.last.score} ${d.scoring.unit}</span>`;
+        } else {
+          head = `<span class="score-pill">Not played</span>`;
+        }
+        const meta = sum
+          ? `<div class="meta"><span>Best <b>${sum.best.score}/${sum.best.max}</b></span>
+             <span>Sessions <b>${sum.runs.length}</b></span>
+             <span>Last played <b>${when(sum.last.ts)}</b></span></div>`
+          : `<div class="meta"><span>No sessions logged yet</span></div>`;
+        return `<article class="drill">
+          <h3>${d.icon} ${d.name} <span class="cat">${d.cat}</span></h3>
+          <div>${head}</div>
+          <p class="why">${d.why}</p>
+          ${meta}
+          <div class="actions">
+            <button class="btn-ghost" data-drill="${d.id}">Open drill</button>
+            ${d.scoring.mode === "manual" ? `<button class="btn-primary" style="width:auto;margin:0;" data-drill-log="${d.id}">Log score</button>` : ""}
+          </div>
+        </article>`;
+      }).join("");
+
+      $("drillGrid").querySelectorAll("[data-drill]").forEach((b) =>
+        b.addEventListener("click", () => openDrill(b.dataset.drill)));
+      $("drillGrid").querySelectorAll("[data-drill-log]").forEach((b) =>
+        b.addEventListener("click", () => openDrill(b.dataset.drillLog, true)));
+    }
+    $("drillFilter").addEventListener("change", renderDrills);
+    $("clearDrillsBtn").addEventListener("click", () => {
+      if (drillLog.length && confirm("Delete every logged drill session? This cannot be undone.")) {
+        drillLog = []; saveDrills(); renderDrills();
+      }
+    });
+
+    /* ----- Drill detail ----- */
+    let openDrillId = null;
+    function openDrill(id, focusLog) {
+      const d = drillById(id);
+      if (!d) return;
+      openDrillId = id;
+      $("dlTitle").textContent = `${d.icon} ${d.name}`;
+      $("dlScope").textContent = d.cat;
+
+      let scoreBlock = "";
+      if (d.scoring.mode === "auto") {
+        const res = d.auto();
+        scoreBlock = res.need
+          ? `<div class="dl-target">${res.need}</div>`
+          : `<div class="dl-target">
+              <span class="score-pill ${pillClass(res.score, res.max)}">${res.score} / ${res.max} ${d.scoring.unit}</span>
+              <div style="margin-top:8px;">${res.text}</div>
+              ${res.detail && res.detail.length ? `<ul style="margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:0.85rem;">${res.detail.map((x) => `<li>${x}</li>`).join("")}</ul>` : ""}
+            </div>`;
+      }
+
+      const tool = d.tool === "random-yardage" ? `
+        <h4>Give me a number</h4>
+        <div class="dl-target">
+          <div class="dice" id="diceOut">—</div>
+          <div class="hint-sm" id="diceHint" style="margin:4px 0 0;">Tap for a yardage, commit to a club, then reveal.</div>
+          <div class="dl-log">
+            <button class="btn-primary" id="diceBtn">Give me a number</button>
+            <button class="btn-ghost" id="diceReveal">Reveal the matrix answer</button>
+          </div>
+        </div>` : "";
+
+      const runs = sessionsFor(id);
+      const history = runs.length
+        ? `<ul class="hist">${runs.slice(0, 12).map((r) => `
+            <li><span class="score-pill ${pillClass(r.score, r.max)}">${r.score}/${r.max}</span>
+              <span class="note">${r.note ? esc(r.note) : ""}</span>
+              <span class="when">${when(r.ts)}</span>
+              <button class="del" data-run="${r.id}" title="Delete">✕</button></li>`).join("")}</ul>`
+        : `<div class="hint-sm">Nothing logged yet.</div>`;
+
+      const logForm = `
+        <h4>Log a session</h4>
+        <div class="dl-log">
+          <div class="field">
+            <label for="dlScore">Score (${d.scoring.mode === "auto" ? "out of " + (d.auto().max || "—") : d.scoring.unit})</label>
+            <input type="number" id="dlScore" step="1" min="0" max="${d.scoring.max || 100}" style="width:110px;" />
+          </div>
+          <div class="field grow">
+            <label for="dlNote">Note (optional)</label>
+            <input type="text" id="dlNote" placeholder="what you were working on" />
+          </div>
+          <button class="btn-primary" id="dlSave">Save</button>
+        </div>`;
+
+      $("dlBody").innerHTML =
+        `<p class="why" style="color:var(--muted);font-size:0.92rem;">${d.why}</p>` +
+        scoreBlock +
+        `<h4>Set up</h4><ul>${d.setup.map((x) => `<li>${x}</li>`).join("")}</ul>` +
+        `<h4>How to run it</h4><ol>${d.steps.map((x) => `<li>${x}</li>`).join("")}</ol>` +
+        `<h4>Target</h4><div class="dl-target">${d.target}</div>` +
+        tool +
+        logForm +
+        `<h4>History</h4>${history}`;
+
+      $("dlSave").addEventListener("click", () => {
+        const v = num($("dlScore").value);
+        if (v == null) return;
+        const max = d.scoring.max || (d.scoring.mode === "auto" ? d.auto().max : 10);
+        drillLog.unshift({
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          drill: id, score: v, max, note: $("dlNote").value.trim(), ts: new Date().toISOString(),
+        });
+        saveDrills();
+        renderDrills();
+        openDrill(id);
+      });
+      $("dlBody").querySelectorAll("[data-run]").forEach((b) => b.addEventListener("click", () => {
+        drillLog = drillLog.filter((r) => r.id !== b.dataset.run);
+        saveDrills(); renderDrills(); openDrill(id);
+      }));
+
+      if (d.tool === "random-yardage") {
+        let current = null;
+        const roll = () => {
+          const cells = allCells();
+          const lo = cells.length ? Math.max(20, Math.round(Math.min(...cells.map((c) => c.yds)))) : 30;
+          const hi = cells.length ? Math.round(Math.max(...cells.map((c) => c.yds))) : 110;
+          current = Math.round(lo + Math.random() * Math.max(1, hi - lo));
+          $("diceOut").textContent = current + " yds";
+          $("diceHint").textContent = "Pick your club and swing, then reveal.";
+        };
+        $("diceBtn").addEventListener("click", roll);
+        $("diceReveal").addEventListener("click", () => {
+          if (current == null) return roll();
+          const res = lookup(current);
+          $("diceHint").innerHTML = res
+            ? `Matrix says <b>${cellName(res[0].c)}</b> (${r0(res[0].c.yds)} yds${Math.abs(res[0].delta) >= 1.5 ? `, ${res[0].delta > 0 ? "a touch long" : "a touch short"}` : ""}).`
+            : "Nothing in the matrix yet — fill it in on the Wedge Matrix tab.";
+        });
+      }
+
+      $("drillModal").hidden = false;
+      if (focusLog) setTimeout(() => $("dlScore").focus(), 50);
+    }
+    function closeDrill() { $("drillModal").hidden = true; }
+    $("closeDrillBtn").addEventListener("click", closeDrill);
+    $("drillModal").addEventListener("click", (e) => { if (e.target.id === "drillModal") closeDrill(); });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      closeDrill(); closeCell(); closeInsights(); closePhoto();
+    });
+
+    setSwing("full");
     primeShotNo();
-    render();
+    renderAll();
   </script>
 </body>
 </html>
