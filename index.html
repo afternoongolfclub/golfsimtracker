@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golf Sim Tracker</title>
+
+  <!-- Icons & install (Add to Home Screen) -->
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#0f1720" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Golf Sim" />
+
+  <style>
+    :root {
+      --bg: #0f1720;
+      --panel: #17212b;
+      --panel-2: #1e2b38;
+      --border: #2b3a49;
+      --text: #e6edf3;
+      --muted: #8b9bb0;
+      --accent: #43c463;
+      --accent-2: #2f9e4a;
+      --danger: #e5534b;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      background: linear-gradient(135deg, #14202b, #0f1720);
+      border-bottom: 1px solid var(--border);
+      padding: 22px 20px;
+    }
+    header .wrap { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
+    .logo {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: radial-gradient(circle at 32% 30%, #ffffff, #d7dde3 55%, #aab4bd);
+      box-shadow: inset -3px -3px 6px rgba(0,0,0,0.25);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .logo::after {
+      content: ""; position: absolute; inset: 0; border-radius: 50%;
+      background-image: radial-gradient(circle, rgba(0,0,0,0.12) 1px, transparent 1.4px);
+      background-size: 7px 7px;
+    }
+    header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 0.3px; }
+    header p { margin: 2px 0 0; color: var(--muted); font-size: 0.9rem; }
+    main { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+    .grid { display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: start; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .panel h2 { margin: 0 0 16px; font-size: 1.05rem; }
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 5px; }
+    .field { margin-bottom: 13px; }
+    input, select {
+      width: 100%; padding: 9px 11px; border-radius: 9px;
+      border: 1px solid var(--border); background: var(--panel-2);
+      color: var(--text); font-size: 0.95rem;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--accent); }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    button {
+      cursor: pointer; border: none; border-radius: 9px;
+      font-size: 0.95rem; font-weight: 600; padding: 11px 14px;
+      transition: transform 0.05s ease, background 0.15s ease;
+    }
+    button:active { transform: translateY(1px); }
+    .btn-primary { background: var(--accent); color: #06210f; width: 100%; margin-top: 6px; }
+    .btn-primary:hover { background: var(--accent-2); }
+    .btn-ghost {
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--border); padding: 7px 12px; font-size: 0.85rem;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+    /* Scan-from-photo card */
+    .scan {
+      border: 1px dashed var(--border); border-radius: 11px;
+      padding: 14px; margin-bottom: 18px; background: var(--panel-2);
+    }
+    .scan h3 { margin: 0 0 4px; font-size: 0.95rem; }
+    .scan .hint { color: var(--muted); font-size: 0.78rem; margin-bottom: 11px; }
+    .scan-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--panel); color: var(--text);
+      border: 1px solid var(--border); width: 100%; justify-content: center;
+    }
+    .scan-btn:hover { border-color: var(--accent); }
+    .scan-btn[disabled] { opacity: 0.6; cursor: default; }
+    .scan-status { font-size: 0.8rem; margin-top: 10px; min-height: 1em; color: var(--muted); }
+    .scan-status.ok { color: var(--accent); }
+    .scan-status.err { color: var(--danger); }
+    .scan-preview { margin-top: 11px; display: none; }
+    .scan-preview img {
+      max-width: 100%; max-height: 150px; border-radius: 8px; border: 1px solid var(--border);
+    }
+
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px;
+    }
+    .stat .val { font-size: 1.5rem; font-weight: 700; }
+    .stat .lbl { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+    .toolbar .spacer { flex: 1; }
+    .toolbar select { width: auto; min-width: 140px; }
+    .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; white-space: nowrap; }
+    th, td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border); }
+    th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+    th { background: var(--panel-2); color: var(--muted); font-weight: 600; position: sticky; top: 0; }
+    tbody tr:hover { background: rgba(67, 196, 99, 0.06); }
+    .club-tag {
+      display: inline-block; background: var(--panel-2); border: 1px solid var(--border);
+      padding: 2px 9px; border-radius: 999px; font-size: 0.8rem;
+    }
+    .photo-cell { text-align: center; }
+    .thumb {
+      background: transparent; border: none; font-size: 1.1rem; padding: 2px 6px; line-height: 1;
+    }
+    .thumb:hover { filter: brightness(1.2); }
+    .del {
+      background: transparent; color: var(--muted); border: none; padding: 2px 6px;
+      font-size: 1rem; line-height: 1;
+    }
+    .del:hover { color: var(--danger); }
+    .empty { text-align: center; padding: 46px 20px; color: var(--muted); }
+    .empty .big { font-size: 2.4rem; margin-bottom: 8px; }
+
+    /* Photo viewer modal */
+    .modal {
+      position: fixed; inset: 0; z-index: 50; padding: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal[hidden] { display: none; }
+    .modal-inner {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+      padding: 16px; max-width: min(640px, 100%); max-height: 90vh;
+      display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow);
+    }
+    .modal-inner img { max-width: 100%; max-height: 72vh; object-fit: contain; border-radius: 10px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .modal-actions .btn-primary { width: auto; margin: 0; }
+
+    /* Insights */
+    .modal-inner.wide { max-width: min(780px, 100%); width: 780px; overflow-y: auto; text-align: left; }
+    .iv-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .iv-head h2 { margin: 0; font-size: 1.15rem; }
+    .iv-scope { color: var(--muted); font-size: 0.82rem; }
+    .iv-section { margin-top: 20px; }
+    .iv-section > h3 { margin: 0 0 10px; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+    .iv-take { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .iv-take li { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 0.9rem; display: flex; gap: 10px; align-items: flex-start; }
+    .iv-take .ic { flex-shrink: 0; }
+    .iv-take b { color: var(--text); font-weight: 600; }
+    .iv-empty { color: var(--muted); text-align: center; padding: 30px 10px; }
+    .chart { width: 100%; height: auto; display: block; }
+    .chart .bar { fill: var(--accent); }
+    .chart .track { fill: var(--panel-2); }
+    .chart .whisker { stroke: #cfe9d6; stroke-width: 2; opacity: 0.55; }
+    .chart .club { fill: var(--text); font-size: 12px; }
+    .chart .val { fill: var(--text); font-size: 12px; font-weight: 600; }
+    .chart .barhit { fill: transparent; cursor: default; }
+    .iv-tip { position: fixed; z-index: 60; pointer-events: none; background: #0b1219; border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; font-size: 0.78rem; line-height: 1.35; color: var(--text); box-shadow: var(--shadow); opacity: 0; transition: opacity 0.1s; max-width: 240px; }
+    .iv-tip b { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="logo"></div>
+      <div>
+        <h1>Golf Sim Tracker</h1>
+        <p>Log your shots and track the numbers that matter.</p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <!-- Entry form -->
+      <section class="panel" aria-label="Log a shot">
+        <h2>Log a Shot</h2>
+
+        <!-- Scan from photo -->
+        <div class="scan">
+          <h3>📷 Scan from photo</h3>
+          <div class="hint">Snap or upload your launch monitor screen — the numbers are read in
+            and filled below, and the photo is saved with the shot on your phone.</div>
+          <input type="file" id="photoInput" accept="image/*" hidden />
+          <button type="button" class="scan-btn" id="scanBtn">Take / choose photo</button>
+          <div class="scan-status" id="scanStatus"></div>
+          <div class="scan-preview" id="scanPreview"><img id="scanImg" alt="Scanned photo" /></div>
+        </div>
+
+        <form id="shotForm" autocomplete="off">
+          <div class="row2">
+            <div class="field">
+              <label for="club">Club</label>
+              <select id="club" required>
+                <option value="">Select…</option>
+                <option>Driver</option>
+                <option>3 Wood</option>
+                <option>5 Wood</option>
+                <option>Hybrid</option>
+                <option>3 Iron</option>
+                <option>4 Iron</option>
+                <option>5 Iron</option>
+                <option>6 Iron</option>
+                <option>7 Iron</option>
+                <option>8 Iron</option>
+                <option>9 Iron</option>
+                <option>PW</option>
+                <option>GW</option>
+                <option>SW</option>
+                <option>LW</option>
+                <option>Putter</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="shotNo">Shot #</label>
+              <input type="number" id="shotNo" step="1" min="1" />
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="clubSpeed">Club Speed (mph)</label>
+              <input type="number" id="clubSpeed" step="0.1" min="0" />
+            </div>
+            <div class="field">
+              <label for="ballSpeed">Ball Speed (mph)</label>
+              <input type="number" id="ballSpeed" step="0.1" min="0" />
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="launchAngle">Launch Angle (°)</label>
+              <input type="number" id="launchAngle" step="0.1" />
+            </div>
+            <div class="field">
+              <label for="spinRate">Spin Rate (rpm)</label>
+              <input type="number" id="spinRate" step="1" min="0" />
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="carry">Carry (yds)</label>
+              <input type="number" id="carry" step="0.1" min="0" />
+            </div>
+            <div class="field">
+              <label for="total">Total (yds)</label>
+              <input type="number" id="total" step="0.1" min="0" />
+            </div>
+          </div>
+          <button type="submit" class="btn-primary">Add Shot</button>
+        </form>
+      </section>
+
+      <!-- Data + stats -->
+      <section aria-label="Shots">
+        <div class="stats" id="stats"></div>
+
+        <div class="toolbar">
+          <label for="filter" style="margin:0;">Filter</label>
+          <select id="filter"><option value="">All clubs</option></select>
+          <button class="btn-ghost" id="insightsBtn">📊 Insights</button>
+          <div class="spacer"></div>
+          <button class="btn-ghost" id="importBtn">Import CSV / Excel</button>
+          <button class="btn-ghost" id="exportBtn">Export CSV</button>
+          <button class="btn-ghost" id="clearBtn">Clear All</button>
+          <input type="file" id="importInput" accept=".csv,.tsv,.txt,.xls,.xlsx" hidden />
+        </div>
+        <div class="scan-status" id="importStatus" style="margin: -6px 0 12px;"></div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Club</th>
+                <th>Club Spd</th>
+                <th>Ball Spd</th>
+                <th>Smash</th>
+                <th>Launch</th>
+                <th>Spin</th>
+                <th>Carry</th>
+                <th>Total</th>
+                <th>Photo</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="shotBody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="empty">
+          <div class="big">🏌️</div>
+          <div>No shots logged yet. Add your first shot to get started.</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Photo viewer -->
+  <div class="modal" id="photoModal" hidden>
+    <div class="modal-inner">
+      <img id="modalImg" alt="Shot photo" />
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" id="savePhotoBtn">Save to phone</button>
+        <button type="button" class="btn-ghost" id="closeModalBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Insights -->
+  <div class="modal" id="insightsModal" hidden>
+    <div class="modal-inner wide">
+      <div class="iv-head">
+        <div>
+          <h2>📊 Insights</h2>
+          <div class="iv-scope" id="ivScope"></div>
+        </div>
+        <button type="button" class="btn-ghost" id="closeInsightsBtn">Close</button>
+      </div>
+      <div id="ivBody"></div>
+    </div>
+  </div>
+  <div class="iv-tip" id="ivTip"></div>
+
+  <script>
+    // Storage keys kept as-is so previously saved shots/photos aren't orphaned by the rename.
+    const STORAGE_KEY = "trackman-shots-v1";
+    let shots = load();
+
+    const $ = (id) => document.getElementById(id);
+    const num = (v) => (v === "" || v === null || isNaN(parseFloat(v)) ? null : parseFloat(v));
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(shots));
+    }
+
+    /* ---------- Photo storage (IndexedDB) ---------- */
+    const DB_NAME = "trackman", PHOTO_STORE = "photos";
+    let dbPromise = null;
+    function db() {
+      if (dbPromise) return dbPromise;
+      dbPromise = new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = () => req.result.createObjectStore(PHOTO_STORE);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      return dbPromise;
+    }
+    function idbRun(mode, fn) {
+      return db().then((d) => new Promise((resolve, reject) => {
+        const tx = d.transaction(PHOTO_STORE, mode);
+        const store = tx.objectStore(PHOTO_STORE);
+        const req = fn(store);
+        tx.oncomplete = () => resolve(req && req.result);
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+      }));
+    }
+    const putPhoto = (key, blob) => idbRun("readwrite", (s) => s.put(blob, key));
+    const getPhoto = (key) => idbRun("readonly", (s) => s.get(key));
+    const delPhoto = (key) => idbRun("readwrite", (s) => s.delete(key));
+    const clearPhotos = () => idbRun("readwrite", (s) => s.clear());
+
+    // Downscale a photo to keep on-device storage reasonable.
+    function downscale(file, maxDim = 1280, quality = 0.85) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          let { width, height } = img;
+          const scale = Math.min(1, maxDim / Math.max(width, height));
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+          const c = document.createElement("canvas");
+          c.width = width; c.height = height;
+          c.getContext("2d").drawImage(img, 0, 0, width, height);
+          c.toBlob((b) => (b ? resolve(b) : reject(new Error("encode failed"))), "image/jpeg", quality);
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("load failed")); };
+        img.src = url;
+      });
+    }
+
+    function smash(s) {
+      if (s.ballSpeed != null && s.clubSpeed) return (s.ballSpeed / s.clubSpeed);
+      return null;
+    }
+    function fmt(v, dp = 1) {
+      return v == null ? "—" : Number(v).toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp });
+    }
+    function nextShotNo() {
+      const nums = shots.map((s) => s.shotNo).filter((n) => n != null);
+      return nums.length ? Math.max(...nums) + 1 : 1;
+    }
+    function primeShotNo() {
+      $("shotNo").value = nextShotNo();
+    }
+
+    $("shotForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const club = $("club").value;
+      if (!club) return;
+      const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      const shot = {
+        id,
+        ts: new Date().toISOString(),
+        shotNo: num($("shotNo").value),
+        club,
+        clubSpeed: num($("clubSpeed").value),
+        ballSpeed: num($("ballSpeed").value),
+        launchAngle: num($("launchAngle").value),
+        spinRate: num($("spinRate").value),
+        carry: num($("carry").value),
+        total: num($("total").value),
+        hasPhoto: false,
+      };
+      if (pendingPhoto) {
+        try {
+          await putPhoto(id, pendingPhoto);
+          shot.hasPhoto = true;
+        } catch (err) {
+          setScanStatus("Shot saved, but the photo couldn't be stored (device storage full?).", "err");
+        }
+      }
+      shots.unshift(shot);
+      save();
+      e.target.reset();
+      clearScan();
+      primeShotNo();
+      $("club").focus();
+      render();
+    });
+
+    $("filter").addEventListener("change", render);
+
+    $("clearBtn").addEventListener("click", async () => {
+      if (shots.length && confirm("Delete all logged shots and their photos? This cannot be undone.")) {
+        shots = [];
+        save();
+        try { await clearPhotos(); } catch (e) {}
+        primeShotNo();
+        render();
+      }
+    });
+
+    $("exportBtn").addEventListener("click", exportCsv);
+
+    async function deleteShot(id) {
+      shots = shots.filter((s) => s.id !== id);
+      save();
+      try { await delPhoto(id); } catch (e) {}
+      render();
+    }
+
+    function currentFiltered() {
+      const f = $("filter").value;
+      return f ? shots.filter((s) => s.club === f) : shots;
+    }
+
+    function render() {
+      const clubs = [...new Set(shots.map((s) => s.club))];
+      const sel = $("filter");
+      const prev = sel.value;
+      sel.innerHTML = '<option value="">All clubs</option>' +
+        clubs.map((c) => `<option${c === prev ? " selected" : ""}>${c}</option>`).join("");
+
+      const rows = currentFiltered();
+      const body = $("shotBody");
+      body.innerHTML = rows.map((s) => `
+        <tr>
+          <td>${s.shotNo == null ? "—" : s.shotNo}</td>
+          <td><span class="club-tag">${s.club}</span></td>
+          <td>${fmt(s.clubSpeed)}</td>
+          <td>${fmt(s.ballSpeed)}</td>
+          <td>${fmt(smash(s), 2)}</td>
+          <td>${fmt(s.launchAngle)}</td>
+          <td>${s.spinRate == null ? "—" : Math.round(s.spinRate).toLocaleString()}</td>
+          <td>${fmt(s.carry)}</td>
+          <td>${fmt(s.total)}</td>
+          <td class="photo-cell">${s.hasPhoto ? `<button class="thumb" data-photo="${s.id}" data-no="${s.shotNo == null ? "" : s.shotNo}" title="View / save photo">📷</button>` : "—"}</td>
+          <td><button class="del" title="Delete" data-id="${s.id}">✕</button></td>
+        </tr>`).join("");
+
+      body.querySelectorAll(".del").forEach((b) =>
+        b.addEventListener("click", () => deleteShot(b.dataset.id)));
+      body.querySelectorAll(".thumb").forEach((b) =>
+        b.addEventListener("click", () => openPhoto(b.dataset.photo, b.dataset.no)));
+
+      $("empty").style.display = rows.length ? "none" : "block";
+      document.querySelector(".table-wrap").style.display = rows.length ? "block" : "none";
+
+      renderStats(rows);
+    }
+
+    function avg(arr, key) {
+      const vals = arr.map((s) => (key === "smash" ? smash(s) : s[key])).filter((v) => v != null);
+      if (!vals.length) return null;
+      return vals.reduce((a, b) => a + b, 0) / vals.length;
+    }
+    function max(arr, key) {
+      const vals = arr.map((s) => s[key]).filter((v) => v != null);
+      return vals.length ? Math.max(...vals) : null;
+    }
+
+    function renderStats(rows) {
+      const cards = [
+        { lbl: "Shots", val: rows.length, dp: 0 },
+        { lbl: "Avg Carry", val: avg(rows, "carry") },
+        { lbl: "Avg Ball Spd", val: avg(rows, "ballSpeed") },
+        { lbl: "Avg Smash", val: avg(rows, "smash"), dp: 2 },
+        { lbl: "Longest Carry", val: max(rows, "carry") },
+      ];
+      $("stats").innerHTML = cards.map((c) => `
+        <div class="stat">
+          <div class="val">${c.dp === 0 ? c.val : fmt(c.val, c.dp ?? 1)}</div>
+          <div class="lbl">${c.lbl}</div>
+        </div>`).join("");
+    }
+
+    function exportCsv() {
+      if (!shots.length) return;
+      const header = ["Timestamp", "Shot #", "Club", "Club Speed", "Ball Speed", "Smash Factor", "Launch Angle", "Spin Rate", "Carry", "Total"];
+      const lines = [header.join(",")];
+      currentFiltered().forEach((s) => {
+        const sm = smash(s);
+        const vals = [s.ts, s.shotNo, s.club, s.clubSpeed, s.ballSpeed, sm == null ? "" : sm.toFixed(2),
+          s.launchAngle, s.spinRate, s.carry, s.total];
+        lines.push(vals.map((v) => (v == null ? "" : String(v))).join(","));
+      });
+      const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "golf-sim-shots.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    /* ---------- Import from CSV / Excel ---------- */
+    function setImportStatus(msg, kind) {
+      const el = $("importStatus");
+      el.textContent = msg || "";
+      el.className = "scan-status" + (kind ? " " + kind : "");
+    }
+
+    // Minimal RFC-4180-ish CSV/TSV parser (handles quotes, commas/tabs, CRLF).
+    function parseDelimited(text) {
+      const firstLine = text.split(/\r?\n/, 1)[0] || "";
+      const delim = firstLine.split("\t").length > firstLine.split(",").length ? "\t" : ",";
+      const rows = [];
+      let row = [], field = "", inQ = false, i = 0;
+      while (i < text.length) {
+        const c = text[i];
+        if (inQ) {
+          if (c === '"') {
+            if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+            inQ = false; i++; continue;
+          }
+          field += c; i++; continue;
+        }
+        if (c === '"') { inQ = true; i++; continue; }
+        if (c === delim) { row.push(field); field = ""; i++; continue; }
+        if (c === "\r") { i++; continue; }
+        if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; i++; continue; }
+        field += c; i++;
+      }
+      if (field.length || row.length) { row.push(field); rows.push(row); }
+      return rows.filter((r) => r.some((v) => String(v).trim() !== ""));
+    }
+
+    const normHeader = (h) => String(h).toLowerCase().replace(/[^a-z0-9]/g, "");
+    const HEADER_MAP = {
+      club: ["club", "clubtype", "clubname"],
+      shotNo: ["shot", "shotnumber", "shotno", "shotnum"],
+      clubSpeed: ["clubspeed", "clubspd", "clubheadspeed", "chs", "clubmph"],
+      ballSpeed: ["ballspeed", "ballspd", "bs", "ballmph"],
+      launchAngle: ["launchangle", "launch", "launchang", "la", "vla", "verticallaunchangle", "launchv"],
+      spinRate: ["spinrate", "spin", "backspin", "totalspin", "spinrpm"],
+      carry: ["carry", "carrydistance", "carryyds", "carrydist", "carryyards"],
+      total: ["total", "totaldistance", "totaldist", "totalyds", "totalyards"],
+      ts: ["timestamp", "date", "time", "datetime", "shotdate"],
+    };
+
+    function cleanNum(v) {
+      if (v == null) return null;
+      const s = String(v).replace(/,/g, "").replace(/[^0-9.\-]/g, "");
+      if (s === "" || s === "-" || s === ".") return null;
+      const n = parseFloat(s);
+      return isNaN(n) ? null : n;
+    }
+
+    // rows: array of arrays; first row = header. Returns {added} or {error}.
+    function importRows(rows) {
+      if (!rows.length) return { error: "The file looks empty." };
+      const header = rows[0].map(normHeader);
+      const colField = {};
+      // For each column pick the field whose synonym matches most specifically
+      // (exact or prefix), so "Ball Speed (mph)" -> ballSpeed and
+      // "Club Head Speed" -> clubSpeed rather than club.
+      header.forEach((h, idx) => {
+        let best = null, bestLen = 0;
+        for (const field in HEADER_MAP) {
+          for (const syn of HEADER_MAP[field]) {
+            if ((h === syn || h.startsWith(syn)) && syn.length > bestLen) { best = field; bestLen = syn.length; }
+          }
+        }
+        if (best && colField[best] === undefined) colField[best] = idx;
+      });
+      if (!Object.keys(colField).length) {
+        return { error: "No recognizable columns. Add a header row with names like Club, Shot #, Ball Speed, Carry, Total." };
+      }
+      const get = (row, f) => (colField[f] !== undefined ? row[colField[f]] : undefined);
+      let nextNo = nextShotNo();
+      const newShots = [];
+      for (let r = 1; r < rows.length; r++) {
+        const row = rows[r];
+        const clubRaw = get(row, "club");
+        const club = clubRaw != null && String(clubRaw).trim() !== "" ? String(clubRaw).trim() : "Unknown";
+        const shot = {
+          id: Date.now().toString(36) + "-" + r + "-" + Math.random().toString(36).slice(2, 6),
+          ts: (() => { const t = get(row, "ts"); if (t) { const d = new Date(t); return isNaN(d) ? String(t) : d.toISOString(); } return new Date().toISOString(); })(),
+          shotNo: (() => { const n = cleanNum(get(row, "shotNo")); return n != null ? n : nextNo++; })(),
+          club,
+          clubSpeed: cleanNum(get(row, "clubSpeed")),
+          ballSpeed: cleanNum(get(row, "ballSpeed")),
+          launchAngle: cleanNum(get(row, "launchAngle")),
+          spinRate: cleanNum(get(row, "spinRate")),
+          carry: cleanNum(get(row, "carry")),
+          total: cleanNum(get(row, "total")),
+          hasPhoto: false,
+        };
+        const hasNum = ["clubSpeed", "ballSpeed", "launchAngle", "spinRate", "carry", "total"].some((k) => shot[k] != null);
+        if (club === "Unknown" && !hasNum) continue;   // skip blank/junk rows
+        newShots.push(shot);
+      }
+      if (!newShots.length) return { error: "Found a header but no data rows to import." };
+      shots = newShots.concat(shots);   // keep file order, newest batch on top
+      save();
+      primeShotNo();
+      render();
+      return { added: newShots.length };
+    }
+
+    let xlsxLoading = null;
+    function ensureXlsx() {
+      if (window.XLSX) return Promise.resolve();
+      if (xlsxLoading) return xlsxLoading;
+      xlsxLoading = new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+        s.onload = resolve;
+        s.onerror = () => { xlsxLoading = null; reject(new Error("Couldn't load the Excel reader (need internet). Tip: in Excel, Save As CSV and import that.")); };
+        document.head.appendChild(s);
+      });
+      return xlsxLoading;
+    }
+
+    $("importBtn").addEventListener("click", () => $("importInput").click());
+    $("importInput").addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      setImportStatus("Reading " + file.name + "…");
+      try {
+        const name = file.name.toLowerCase();
+        let rows;
+        if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
+          await ensureXlsx();
+          const buf = await file.arrayBuffer();
+          const wb = XLSX.read(buf, { type: "array" });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          rows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, raw: false });
+        } else {
+          rows = parseDelimited(await file.text());
+        }
+        const res = importRows(rows);
+        if (res.error) setImportStatus(res.error, "err");
+        else setImportStatus("Imported " + res.added + " shot" + (res.added === 1 ? "" : "s") + " from " + file.name + ".", "ok");
+      } catch (err) {
+        setImportStatus(err.message || "Import failed.", "err");
+      } finally {
+        e.target.value = "";
+      }
+    });
+
+    /* ---------- Insights ---------- */
+    function stat(vals) {
+      const v = vals.filter((x) => x != null && !isNaN(x));
+      if (!v.length) return null;
+      const n = v.length;
+      const mean = v.reduce((a, b) => a + b, 0) / n;
+      let sd = null;
+      if (n >= 2) sd = Math.sqrt(v.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1));
+      return { n, mean, sd, min: Math.min(...v), max: Math.max(...v) };
+    }
+    const r0 = (x) => (x == null ? null : Math.round(x));
+    const r1 = (x) => (x == null ? null : Math.round(x * 10) / 10);
+
+    function computeInsights(data) {
+      const byClub = {};
+      data.forEach((s) => { (byClub[s.club] = byClub[s.club] || []).push(s); });
+      const clubs = Object.keys(byClub).map((club) => {
+        const g = byClub[club];
+        const pick = (k) => g.map((s) => s[k]);
+        return {
+          club, n: g.length,
+          carry: stat(pick("carry")),
+          total: stat(pick("total")),
+          ballSpeed: stat(pick("ballSpeed")),
+          clubSpeed: stat(pick("clubSpeed")),
+          launch: stat(pick("launchAngle")),
+          spin: stat(pick("spinRate")),
+          smash: stat(g.map((s) => smash(s))),
+        };
+      });
+      // distinct days
+      const days = new Set(data.map((s) => (s.ts || "").slice(0, 10)).filter(Boolean)).size;
+
+      // gapping: clubs that have a carry average, longest first
+      const withCarry = clubs.filter((c) => c.carry).sort((a, b) => b.carry.mean - a.carry.mean);
+      const gaps = [];
+      for (let i = 1; i < withCarry.length; i++) {
+        gaps.push({ from: withCarry[i - 1].club, to: withCarry[i].club, gap: withCarry[i - 1].carry.mean - withCarry[i].carry.mean });
+      }
+
+      // takeaways
+      const t = [];
+      if (withCarry.length) {
+        const lng = withCarry[0];
+        t.push({ ic: "🚀", html: `Your longest club by carry is <b>${lng.club}</b> — averaging <b>${r0(lng.carry.mean)} yds</b>${lng.carry.max != null ? ` (best ${r0(lng.carry.max)})` : ""}.` });
+      }
+      const consistent = clubs.filter((c) => c.carry && c.carry.sd != null && c.carry.n >= 3);
+      if (consistent.length) {
+        const best = consistent.reduce((a, b) => (b.carry.sd < a.carry.sd ? b : a));
+        t.push({ ic: "🎯", html: `Most consistent: <b>${best.club}</b> — carries stay within about <b>±${r1(best.carry.sd)} yds</b> over ${best.carry.n} shots.` });
+        if (consistent.length >= 2) {
+          const worst = consistent.reduce((a, b) => (b.carry.sd > a.carry.sd ? b : a));
+          if (worst.club !== best.club && worst.carry.sd - best.carry.sd > 2) {
+            t.push({ ic: "📈", html: `Most scattered: <b>${worst.club}</b> — carries swing <b>±${r1(worst.carry.sd)} yds</b>. A good club to groove.` });
+          }
+        }
+      }
+      if (gaps.length) {
+        const big = gaps.reduce((a, b) => (b.gap > a.gap ? b : a));
+        t.push({ ic: "📏", html: `Biggest yardage gap: <b>${big.from} → ${big.to}</b> is <b>${r0(big.gap)} yds</b>.` });
+        const tight = gaps.filter((g) => g.gap < 6);
+        if (tight.length) {
+          const g = tight[0];
+          t.push({ ic: "🔁", html: `<b>${g.from}</b> and <b>${g.to}</b> carry about the same (${r0(g.gap)} yds apart) — you may not need both.` });
+        }
+      }
+      const drv = clubs.find((c) => /driver/i.test(c.club) && c.smash);
+      if (drv && drv.smash.mean) {
+        const sm = drv.smash.mean;
+        const verdict = sm >= 1.48 ? "excellent — you're flushing it" : sm >= 1.42 ? "solid, with a little room to gain from center strikes" : "there's real distance to gain by centering strikes";
+        t.push({ ic: "💥", html: `Driver smash factor averages <b>${sm.toFixed(2)}</b> — ${verdict}.` });
+      }
+
+      return { clubs, gaps, days, shots: data.length, clubCount: clubs.length, withCarry, takeaways: t };
+    }
+
+    function ivCarryChart(withCarry) {
+      if (!withCarry.length) return "";
+      const rows = withCarry.slice(0, 14);
+      const W = 720, rowH = 34, padL = 92, padR = 58, padT = 6, padB = 6;
+      const H = padT + padB + rows.length * rowH;
+      const maxV = Math.max(...rows.map((c) => (c.carry.max != null ? c.carry.max : c.carry.mean)));
+      const scale = (v) => padL + (v / maxV) * (W - padL - padR);
+      let svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Average carry by club">`;
+      rows.forEach((c, i) => {
+        const cy = padT + i * rowH + rowH / 2;
+        const by = cy - 8, bh = 16;
+        const barW = scale(c.carry.mean) - padL;
+        svg += `<text class="club" x="${padL - 10}" y="${cy + 4}" text-anchor="end">${c.club}</text>`;
+        svg += `<rect class="track" x="${padL}" y="${by}" width="${W - padL - padR}" height="${bh}" rx="8"/>`;
+        svg += `<rect class="bar" x="${padL}" y="${by}" width="${Math.max(2, barW)}" height="${bh}" rx="8"/>`;
+        if (c.carry.sd != null) {
+          const x1 = scale(Math.max(0, c.carry.mean - c.carry.sd)), x2 = scale(c.carry.mean + c.carry.sd);
+          svg += `<line class="whisker" x1="${x1}" y1="${cy}" x2="${x2}" y2="${cy}"/>`;
+          svg += `<line class="whisker" x1="${x1}" y1="${cy - 5}" x2="${x1}" y2="${cy + 5}"/>`;
+          svg += `<line class="whisker" x1="${x2}" y1="${cy - 5}" x2="${x2}" y2="${cy + 5}"/>`;
+        }
+        svg += `<text class="val" x="${scale(c.carry.mean) + 8}" y="${cy + 4}">${r0(c.carry.mean)}</text>`;
+        const tip = `${c.club} · ${c.carry.n} shot${c.carry.n === 1 ? "" : "s"}\nAvg carry ${r0(c.carry.mean)} yds` +
+          (c.carry.sd != null ? ` (±${r1(c.carry.sd)})` : "") + `\nRange ${r0(c.carry.min)}–${r0(c.carry.max)} yds` +
+          (c.total ? `\nAvg total ${r0(c.total.mean)} yds` : "");
+        svg += `<rect class="barhit" x="0" y="${padT + i * rowH}" width="${W}" height="${rowH}" data-tip="${tip.replace(/"/g, "&quot;")}"/>`;
+      });
+      svg += `</svg>`;
+      return svg;
+    }
+
+    function fmtCell(st, dp) { return st == null ? "—" : (dp ? r1(st.mean) : r0(st.mean)); }
+
+    function ivTable(clubs) {
+      const ordered = clubs.slice().sort((a, b) => ((b.carry ? b.carry.mean : -1) - (a.carry ? a.carry.mean : -1)));
+      const body = ordered.map((c) => `
+        <tr>
+          <td><span class="club-tag">${c.club}</span></td>
+          <td>${c.n}</td>
+          <td>${fmtCell(c.carry)}</td>
+          <td>${c.carry && c.carry.sd != null ? "±" + r1(c.carry.sd) : "—"}</td>
+          <td>${fmtCell(c.total)}</td>
+          <td>${fmtCell(c.ballSpeed, 1)}</td>
+          <td>${fmtCell(c.clubSpeed, 1)}</td>
+          <td>${c.smash && c.smash.mean ? c.smash.mean.toFixed(2) : "—"}</td>
+          <td>${fmtCell(c.launch, 1)}</td>
+          <td>${c.spin ? r0(c.spin.mean).toLocaleString() : "—"}</td>
+        </tr>`).join("");
+      return `<div class="table-wrap"><table>
+        <thead><tr><th>Club</th><th>Shots</th><th>Carry</th><th>±Consist.</th><th>Total</th><th>Ball</th><th>Club</th><th>Smash</th><th>Launch</th><th>Spin</th></tr></thead>
+        <tbody>${body}</tbody></table></div>`;
+    }
+
+    function renderInsights() {
+      const data = shots;
+      const ins = computeInsights(data);
+      $("ivScope").textContent = data.length
+        ? `${ins.shots} shots · ${ins.clubCount} club${ins.clubCount === 1 ? "" : "s"}${ins.days ? ` · ${ins.days} day${ins.days === 1 ? "" : "s"}` : ""}`
+        : "";
+      if (data.length < 2) {
+        $("ivBody").innerHTML = `<div class="iv-empty">Log a few more shots to unlock insights — averages, consistency, and club gapping need at least a couple of shots.</div>`;
+        return;
+      }
+      const takeaways = ins.takeaways.length
+        ? `<ul class="iv-take">${ins.takeaways.map((t) => `<li><span class="ic">${t.ic}</span><span>${t.html}</span></li>`).join("")}</ul>`
+        : `<div class="iv-empty">Add carry distances to your shots to see takeaways.</div>`;
+      const chart = ins.withCarry.length
+        ? `<div class="iv-section"><h3>Average carry by club</h3>${ivCarryChart(ins.withCarry)}</div>`
+        : "";
+      $("ivBody").innerHTML =
+        `<div class="iv-section"><h3>Takeaways</h3>${takeaways}</div>` +
+        chart +
+        `<div class="iv-section"><h3>By club</h3>${ivTable(ins.clubs)}</div>`;
+      // chart tooltips
+      $("ivBody").querySelectorAll(".barhit").forEach((el) => {
+        const show = (ev) => {
+          const tip = $("ivTip");
+          tip.innerHTML = (el.dataset.tip || "").split("\n").map((l, i) => (i === 0 ? "<b>" + l + "</b>" : l)).join("<br>");
+          const pt = ev.touches ? ev.touches[0] : ev;
+          tip.style.left = Math.min(pt.clientX + 12, window.innerWidth - 250) + "px";
+          tip.style.top = pt.clientY + 14 + "px";
+          tip.style.opacity = "1";
+        };
+        const hide = () => { $("ivTip").style.opacity = "0"; };
+        el.addEventListener("mousemove", show);
+        el.addEventListener("mouseleave", hide);
+        el.addEventListener("touchstart", show, { passive: true });
+        el.addEventListener("touchend", hide);
+      });
+    }
+
+    function openInsights() { renderInsights(); $("insightsModal").hidden = false; }
+    function closeInsights() { $("insightsModal").hidden = true; $("ivTip").style.opacity = "0"; }
+    $("insightsBtn").addEventListener("click", openInsights);
+    $("closeInsightsBtn").addEventListener("click", closeInsights);
+    $("insightsModal").addEventListener("click", (e) => { if (e.target.id === "insightsModal") closeInsights(); });
+
+    /* ---------- Photo viewer ---------- */
+    let modalUrl = null, modalBlob = null, modalName = "golf-sim-shot.jpg";
+
+    async function openPhoto(id, no) {
+      let blob;
+      try { blob = await getPhoto(id); } catch (e) { blob = null; }
+      if (!blob) return;
+      modalBlob = blob;
+      modalName = "golf-sim-shot" + (no ? "-" + no : "") + ".jpg";
+      if (modalUrl) URL.revokeObjectURL(modalUrl);
+      modalUrl = URL.createObjectURL(blob);
+      $("modalImg").src = modalUrl;
+      $("photoModal").hidden = false;
+    }
+    function closePhoto() {
+      $("photoModal").hidden = true;
+      $("modalImg").removeAttribute("src");
+      if (modalUrl) { URL.revokeObjectURL(modalUrl); modalUrl = null; }
+      modalBlob = null;
+    }
+    async function savePhoto() {
+      if (!modalBlob) return;
+      const file = new File([modalBlob], modalName, { type: "image/jpeg" });
+      // Native share sheet (lets you "Save Image" to the camera roll on mobile)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file] }); return; }
+        catch (e) { if (e && e.name === "AbortError") return; }
+      }
+      // Fallback: download to Files / Downloads
+      const url = URL.createObjectURL(modalBlob);
+      const a = document.createElement("a");
+      a.href = url; a.download = modalName; a.click();
+      URL.revokeObjectURL(url);
+    }
+    $("closeModalBtn").addEventListener("click", closePhoto);
+    $("savePhotoBtn").addEventListener("click", savePhoto);
+    $("photoModal").addEventListener("click", (e) => { if (e.target.id === "photoModal") closePhoto(); });
+
+    /* ---------- Scan from photo (OCR) ---------- */
+    let pendingPhoto = null;   // downscaled blob awaiting save with the next shot
+    let previewUrl = null;
+
+    function setScanStatus(msg, kind) {
+      const el = $("scanStatus");
+      el.textContent = msg || "";
+      el.className = "scan-status" + (kind ? " " + kind : "");
+    }
+
+    function clearScan() {
+      setScanStatus("");
+      $("scanPreview").style.display = "none";
+      $("scanImg").removeAttribute("src");
+      $("photoInput").value = "";
+      if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
+      pendingPhoto = null;
+    }
+
+    // Parse OCR text and fill matching fields. Returns count of fields filled.
+    function applyOcr(text) {
+      const t = " " + text.replace(/\s+/g, " ").toUpperCase() + " ";
+      const NUM = "(-?[\\d,]{1,7}(?:\\.\\d+)?)";
+      const grab = (labels) => {
+        for (const lab of labels) {
+          const m = t.match(new RegExp(lab + "[^0-9\\-]{0,15}" + NUM, "i"));
+          if (m) {
+            const v = parseFloat(m[1].replace(/,/g, ""));
+            if (!isNaN(v)) return v;
+          }
+        }
+        return null;
+      };
+      const map = [
+        ["clubSpeed", ["CLUB SPEED", "CLUB SPD", "CLUBSPEED"]],
+        ["ballSpeed", ["BALL SPEED", "BALL SPD", "BALLSPEED"]],
+        ["launchAngle", ["LAUNCH ANGLE", "LAUNCH ANG", "LAUNCH"]],
+        ["spinRate", ["SPIN RATE", "SPINRATE", "SPIN"]],
+        ["carry", ["CARRY"]],
+        ["total", ["TOTAL"]],
+      ];
+      let filled = 0;
+      for (const [id, labels] of map) {
+        const v = grab(labels);
+        if (v != null) {
+          $(id).value = v;
+          filled++;
+        }
+      }
+      return filled;
+    }
+
+    let tesseractLoading = null;
+    function ensureTesseract() {
+      if (window.Tesseract) return Promise.resolve();
+      if (tesseractLoading) return tesseractLoading;
+      tesseractLoading = new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+        s.onload = resolve;
+        s.onerror = () => {
+          tesseractLoading = null;
+          reject(new Error("Couldn't load the OCR library — you need internet the first time you scan."));
+        };
+        document.head.appendChild(s);
+      });
+      return tesseractLoading;
+    }
+
+    $("scanBtn").addEventListener("click", () => $("photoInput").click());
+
+    $("photoInput").addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      // Preview
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = URL.createObjectURL(file);
+      $("scanImg").src = previewUrl;
+      $("scanPreview").style.display = "block";
+
+      // Prepare the copy that gets saved with the shot
+      try { pendingPhoto = await downscale(file); }
+      catch (err) { pendingPhoto = file; }
+
+      // OCR (photo is already queued to save even if this fails)
+      $("scanBtn").disabled = true;
+      try {
+        setScanStatus("Loading OCR…");
+        await ensureTesseract();
+        setScanStatus("Reading photo… this can take a few seconds.");
+        const worker = await Tesseract.createWorker("eng");
+        try {
+          const { data } = await worker.recognize(file);
+          const filled = applyOcr(data.text);
+          if (filled) {
+            setScanStatus(`Read ${filled} value${filled === 1 ? "" : "s"} — check them, then Add Shot. Photo will be saved.`, "ok");
+          } else {
+            setScanStatus("Couldn't read any numbers — enter them manually. The photo will still be saved.", "err");
+          }
+        } finally {
+          await worker.terminate();
+        }
+      } catch (err) {
+        setScanStatus((err.message || "Scan failed.") + " Enter numbers manually; the photo will still be saved.", "err");
+      } finally {
+        $("scanBtn").disabled = false;
+      }
+    });
+
+    primeShotNo();
+    render();
+  </script>
+</body>
+</html>
