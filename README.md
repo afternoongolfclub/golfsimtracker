@@ -35,6 +35,8 @@ Garmin, Rapsodo, and others).
 
 No build step, no dependencies, no server.
 
+**Live:** https://afternoongolfclub.github.io/golfsimtracker/
+
 ## Usage
 
 Open `index.html` in any modern web browser.
