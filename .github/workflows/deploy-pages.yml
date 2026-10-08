@@ -3,22 +3,50 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
-# Allow the workflow to publish to GitHub Pages
+# Read-only by default. Only the deploy job gets the Pages tokens, so a run
+# triggered by a pull request can't publish anything.
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-# Only one Pages deployment at a time; don't cancel an in-progress one
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
-  deploy:
+  validate:
+    name: Validate
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check index.html
+        run: node .github/scripts/validate.mjs
+
+  deploy:
+    name: Deploy
+    # Pull requests stop at validate: this job publishes to the live site, so it
+    # only ever runs for main and for a manual dispatch.
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+
+    # Allow this job alone to publish to GitHub Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    # Only one Pages deployment at a time; don't cancel an in-progress one.
+    # Scoped to this job so pull request checks don't queue behind a deploy.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
